@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger version="3"><dataSet config="main"><source path="/Users/liumeng/CustomAppVMP/app/src/main/assets"><file name="classes.yc" path="/Users/liumeng/CustomAppVMP/app/src/main/assets/classes.yc"/></source><source path="/Users/liumeng/CustomAppVMP/app/build/generated/assets/shaders/debug"/></dataSet><dataSet config="debug"><source path="/Users/liumeng/CustomAppVMP/app/src/debug/assets"/></dataSet></merger>

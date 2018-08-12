@@ -1,0 +1,99 @@
+
+{
+	"buildFiles" : [ "/Users/liumeng/CustomAppVMP/app/CMakeLists.txt" ],
+	"cFileExtensions" : [ "c" ],
+	"cleanCommands" : 
+	[
+		"/Users/liumeng/android/android_sdk/sdk/cmake/3.6.4111459/bin/cmake --build /Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/x86_64 --target clean"
+	],
+	"cppFileExtensions" : [ "cpp" ],
+	"libraries" : 
+	{
+		"native-lib-Release-x86_64" : 
+		{
+			"abi" : "x86_64",
+			"artifactName" : "native-lib",
+			"buildCommand" : "/Users/liumeng/android/android_sdk/sdk/cmake/3.6.4111459/bin/cmake --build /Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/x86_64 --target native-lib",
+			"buildType" : "release",
+			"files" : 
+			[
+				
+				{
+					"flags" : "  --target=x86_64-none-linux-android --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/x86_64-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot -Dnative_lib_EXPORTS  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/x86_64-linux-android -D__ANDROID_API__=21 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -Wa,--noexecstack -Wformat -Werror=format-security  -O2 -DNDEBUG  -fPIC      -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/ioapi.c",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/x86_64"
+				},
+				
+				{
+					"flags" : "  --target=x86_64-none-linux-android --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/x86_64-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot -Dnative_lib_EXPORTS  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/x86_64-linux-android -D__ANDROID_API__=21 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -Wa,--noexecstack -Wformat -Werror=format-security  -O2 -DNDEBUG  -fPIC      -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/unzip.c",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/x86_64"
+				},
+				
+				{
+					"flags" : "  --target=x86_64-none-linux-android --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/x86_64-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86_64/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/x86_64-linux-android -D__ANDROID_API__=21 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -O2 -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/Globals.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/x86_64"
+				},
+				
+				{
+					"flags" : "  --target=x86_64-none-linux-android --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/x86_64-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86_64/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/x86_64-linux-android -D__ANDROID_API__=21 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -O2 -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/InterpC.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/x86_64"
+				},
+				
+				{
+					"flags" : "  --target=x86_64-none-linux-android --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/x86_64-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86_64/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/x86_64-linux-android -D__ANDROID_API__=21 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -O2 -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/io.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/x86_64"
+				},
+				
+				{
+					"flags" : "  --target=x86_64-none-linux-android --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/x86_64-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86_64/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/x86_64-linux-android -D__ANDROID_API__=21 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -O2 -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/Utils.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/x86_64"
+				},
+				
+				{
+					"flags" : "  --target=x86_64-none-linux-android --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/x86_64-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86_64/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/x86_64-linux-android -D__ANDROID_API__=21 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -O2 -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/BitConvert.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/x86_64"
+				},
+				
+				{
+					"flags" : "  --target=x86_64-none-linux-android --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/x86_64-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86_64/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/x86_64-linux-android -D__ANDROID_API__=21 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -O2 -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/avmp.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/x86_64"
+				},
+				
+				{
+					"flags" : "  --target=x86_64-none-linux-android --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/x86_64-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86_64/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/x86_64-linux-android -D__ANDROID_API__=21 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -O2 -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/YcFile.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/x86_64"
+				},
+				
+				{
+					"flags" : "  --target=x86_64-none-linux-android --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/x86_64-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86_64/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/x86_64-linux-android -D__ANDROID_API__=21 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -O2 -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/DexOpcodes.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/x86_64"
+				},
+				
+				{
+					"flags" : "  --target=x86_64-none-linux-android --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/x86_64-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86_64/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/x86_64-linux-android -D__ANDROID_API__=21 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -O2 -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/Exception.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/x86_64"
+				}
+			],
+			"output" : "/Users/liumeng/CustomAppVMP/app/build/intermediates/cmake/release/obj/x86_64/libnative-lib.so",
+			"toolchain" : "1766099456788206744"
+		}
+	},
+	"toolchains" : 
+	{
+		"1766099456788206744" : 
+		{
+			"cCompilerExecutable" : "/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang",
+			"cppCompilerExecutable" : "/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++"
+		}
+	}
+}

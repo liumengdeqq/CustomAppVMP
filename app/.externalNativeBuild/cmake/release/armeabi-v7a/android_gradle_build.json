@@ -1,0 +1,99 @@
+
+{
+	"buildFiles" : [ "/Users/liumeng/CustomAppVMP/app/CMakeLists.txt" ],
+	"cFileExtensions" : [ "c" ],
+	"cleanCommands" : 
+	[
+		"/Users/liumeng/android/android_sdk/sdk/cmake/3.6.4111459/bin/cmake --build /Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a --target clean"
+	],
+	"cppFileExtensions" : [ "cpp" ],
+	"libraries" : 
+	{
+		"native-lib-Release-armeabi-v7a" : 
+		{
+			"abi" : "armeabi-v7a",
+			"artifactName" : "native-lib",
+			"buildCommand" : "/Users/liumeng/android/android_sdk/sdk/cmake/3.6.4111459/bin/cmake --build /Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a --target native-lib",
+			"buildType" : "release",
+			"files" : 
+			[
+				
+				{
+					"flags" : "  --target=armv7-none-linux-androideabi --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot -Dnative_lib_EXPORTS  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/arm-linux-androideabi -D__ANDROID_API__=19 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-integrated-as -mthumb -Wa,--noexecstack -Wformat -Werror=format-security  -Oz -DNDEBUG  -fPIC      -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/ioapi.c",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a"
+				},
+				
+				{
+					"flags" : "  --target=armv7-none-linux-androideabi --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot -Dnative_lib_EXPORTS  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/arm-linux-androideabi -D__ANDROID_API__=19 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-integrated-as -mthumb -Wa,--noexecstack -Wformat -Werror=format-security  -Oz -DNDEBUG  -fPIC      -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/unzip.c",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a"
+				},
+				
+				{
+					"flags" : "  --target=armv7-none-linux-androideabi --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/arm-linux-androideabi -D__ANDROID_API__=19 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-integrated-as -mthumb -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -Oz -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/Globals.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a"
+				},
+				
+				{
+					"flags" : "  --target=armv7-none-linux-androideabi --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/arm-linux-androideabi -D__ANDROID_API__=19 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-integrated-as -mthumb -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -Oz -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/InterpC.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a"
+				},
+				
+				{
+					"flags" : "  --target=armv7-none-linux-androideabi --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/arm-linux-androideabi -D__ANDROID_API__=19 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-integrated-as -mthumb -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -Oz -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/io.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a"
+				},
+				
+				{
+					"flags" : "  --target=armv7-none-linux-androideabi --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/arm-linux-androideabi -D__ANDROID_API__=19 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-integrated-as -mthumb -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -Oz -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/Utils.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a"
+				},
+				
+				{
+					"flags" : "  --target=armv7-none-linux-androideabi --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/arm-linux-androideabi -D__ANDROID_API__=19 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-integrated-as -mthumb -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -Oz -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/BitConvert.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a"
+				},
+				
+				{
+					"flags" : "  --target=armv7-none-linux-androideabi --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/arm-linux-androideabi -D__ANDROID_API__=19 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-integrated-as -mthumb -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -Oz -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/avmp.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a"
+				},
+				
+				{
+					"flags" : "  --target=armv7-none-linux-androideabi --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/arm-linux-androideabi -D__ANDROID_API__=19 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-integrated-as -mthumb -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -Oz -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/YcFile.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a"
+				},
+				
+				{
+					"flags" : "  --target=armv7-none-linux-androideabi --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/arm-linux-androideabi -D__ANDROID_API__=19 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-integrated-as -mthumb -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -Oz -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/DexOpcodes.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a"
+				},
+				
+				{
+					"flags" : "  --target=armv7-none-linux-androideabi --gcc-toolchain=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot  -Dnative_lib_EXPORTS -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -isystem /Users/liumeng/android/android_sdk/sdk/ndk-bundle/sysroot/usr/include/arm-linux-androideabi -D__ANDROID_API__=19 -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-integrated-as -mthumb -Wa,--noexecstack -Wformat -Werror=format-security  -frtti -fexceptions -Oz -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/liumeng/CustomAppVMP/app/src/main/cpp/dalvik/vm/Exception.cpp",
+					"workingDirectory" : "/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a"
+				}
+			],
+			"output" : "/Users/liumeng/CustomAppVMP/app/build/intermediates/cmake/release/obj/armeabi-v7a/libnative-lib.so",
+			"toolchain" : "1766099456788206744"
+		}
+	},
+	"toolchains" : 
+	{
+		"1766099456788206744" : 
+		{
+			"cCompilerExecutable" : "/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang",
+			"cppCompilerExecutable" : "/Users/liumeng/android/android_sdk/sdk/ndk-bundle/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++"
+		}
+	}
+}

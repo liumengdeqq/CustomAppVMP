@@ -1,0 +1,25 @@
+# ninja log v5
+0	93	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/ioapi.c.o	1b9df4b6b4ebeebf
+4	174	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/io.cpp.o	953eb8e7b0d4d0bf
+93	226	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/BitConvert.cpp.o	c11d5a371b4028f8
+0	302	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/unzip.c.o	ec379f427d51e077
+302	395	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/DexOpcodes.cpp.o	7de9ac716d578741
+174	396	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/avmp.cpp.o	8c393e25dda9e01a
+226	414	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/YcFile.cpp.o	36d2a4231ffa1406
+1	415	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/Globals.cpp.o	77221b394ee3b62d
+395	550	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/Exception.cpp.o	ed9ee6221fa31630
+5	562	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/Utils.cpp.o	e1dc6c66486445e3
+2	623	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/InterpC.cpp.o	e83f52130d32d02b
+623	683	0	../../../../build/intermediates/cmake/debug/obj/armeabi/libnative-lib.so	1425f70784d6e204
+2	615	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/Globals.cpp.o	77221b394ee3b62d
+3	658	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/io.cpp.o	953eb8e7b0d4d0bf
+4	659	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/Utils.cpp.o	e1dc6c66486445e3
+1	731	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/ioapi.c.o	1b9df4b6b4ebeebf
+731	810	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/DexOpcodes.cpp.o	7de9ac716d578741
+615	841	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/BitConvert.cpp.o	c11d5a371b4028f8
+2	851	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/InterpC.cpp.o	e83f52130d32d02b
+658	925	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/avmp.cpp.o	8c393e25dda9e01a
+660	930	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/YcFile.cpp.o	36d2a4231ffa1406
+1	939	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/unzip.c.o	ec379f427d51e077
+810	952	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/Exception.cpp.o	ed9ee6221fa31630
+952	1054	0	../../../../build/intermediates/cmake/debug/obj/armeabi/libnative-lib.so	1425f70784d6e204

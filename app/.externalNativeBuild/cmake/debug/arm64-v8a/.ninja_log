@@ -1,0 +1,11 @@
+# ninja log v5
+0	524	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/ioapi.c.o	1d6a7924b4bbdb1d
+3	529	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/Globals.cpp.o	1d4858b806ddf73d
+6	615	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/io.cpp.o	85a6c8651560df76
+8	617	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/Utils.cpp.o	d1b02e75de21b26b
+617	678	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/DexOpcodes.cpp.o	d74b5b08c99088c3
+524	696	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/BitConvert.cpp.o	36b9a5b742fd76c6
+2	705	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/unzip.c.o	962f728fa0e68086
+529	747	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/avmp.cpp.o	feafd0e7662fc311
+678	805	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/Exception.cpp.o	d97213aafbaf27f3
+616	904	0	CMakeFiles/native-lib.dir/src/main/cpp/dalvik/vm/YcFile.cpp.o	67e48cccd58a8049

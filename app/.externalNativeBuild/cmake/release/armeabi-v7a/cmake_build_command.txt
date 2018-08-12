@@ -1,0 +1,15 @@
+Executable : /Users/liumeng/android/android_sdk/sdk/cmake/3.6.4111459/bin/cmake
+arguments : 
+-H/Users/liumeng/CustomAppVMP/app
+-B/Users/liumeng/CustomAppVMP/app/.externalNativeBuild/cmake/release/armeabi-v7a
+-DANDROID_ABI=armeabi-v7a
+-DANDROID_PLATFORM=android-19
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/liumeng/CustomAppVMP/app/build/intermediates/cmake/release/obj/armeabi-v7a
+-DCMAKE_BUILD_TYPE=Release
+-DANDROID_NDK=/Users/liumeng/android/android_sdk/sdk/ndk-bundle
+-DCMAKE_CXX_FLAGS=-frtti -fexceptions
+-DCMAKE_TOOLCHAIN_FILE=/Users/liumeng/android/android_sdk/sdk/ndk-bundle/build/cmake/android.toolchain.cmake
+-DCMAKE_MAKE_PROGRAM=/Users/liumeng/android/android_sdk/sdk/cmake/3.6.4111459/bin/ninja
+-GAndroid Gradle - Ninja
+jvmArgs : 
+

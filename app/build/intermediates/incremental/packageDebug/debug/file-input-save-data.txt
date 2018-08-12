@@ -1,0 +1,15 @@
+#Internal package file, do not edit.
+#Sun Aug 12 18:48:20 CST 2018
+1.base=/Users/liumeng/CustomAppVMP/app/build/intermediates/assets/debug
+2.path=lib/armeabi/libnative-lib.so
+0.baseType=DIRECTORY
+2.base=/Users/liumeng/CustomAppVMP/app/build/intermediates/transforms/stripDebugSymbol/debug/0
+2.set=NATIVE_RESOURCE
+1.baseType=DIRECTORY
+count=3
+1.set=ASSET
+0.path=classes.dex
+0.set=DEX
+0.base=/Users/liumeng/CustomAppVMP/app/build/intermediates/transforms/dexMerger/debug/0
+2.baseType=DIRECTORY
+1.path=classes.yc

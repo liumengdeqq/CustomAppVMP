@@ -1,0 +1,4 @@
+#Sun Aug 12 18:48:20 CST 2018
+base.0=/Users/liumeng/CustomAppVMP/app/build/intermediates/transforms/dexMerger/debug/0
+path.0=classes.dex
+renamed.0=classes.dex
