@@ -3,33 +3,35 @@
 #include <android/log.h>
 
 /**
- * ÈÕÖ¾¿ò¼Ü¡£
- * ÓÃÍ¾£ºÊäÈëÈÕÖ¾¡£
+ * ï¿½ï¿½Ö¾ï¿½ï¿½Ü¡ï¿½
+ * ï¿½ï¿½Í¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾ï¿½ï¿½
  */
 
 /*
- ÓÃ·¨£º
-# ¶¨ÒåÈÕÖ¾±êÇ©¡£
+ ï¿½Ã·ï¿½ï¿½ï¿½
+# ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾ï¿½ï¿½Ç©ï¿½ï¿½
 MY_LOG_TAG := \"hello-jni\"
 
-# ¸ù¾Ý¹¹½¨ÀàÐÍ¶¨ÒåÄ¬ÈÏÈÕÖ¾µÈ¼¶¡£
+# ï¿½ï¿½ï¿½Ý¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¶ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½ï¿½ï¿½Ö¾ï¿½È¼ï¿½ï¿½ï¿½
 ifeq ($(APP_OPTIM),release)
 MY_LOG_LEVEL := MY_LOG_LEVEL_ERROR
 else
 MY_LOG_LEVEL := MY_LOG_LEVEL_VERBOSE
 endif
 
-# ×·¼Ó±àÒë±êÊ¶¡£
+# ×·ï¿½Ó±ï¿½ï¿½ï¿½ï¿½Ê¶ï¿½ï¿½
 LOCAL_CFLAGS += -DMY_LOG_TAG=$(MY_LOG_TAG)
 LOCAL_CFLAGS += -DMY_LOG_LEVEL=$(MY_LOG_LEVEL)
 
-# ¶¯Ì¬Á´½ÓÈÕÖ¾¿â¡£
+# ï¿½ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾ï¿½â¡£
 LOCAL_LDLIBS += -llog
 
-×¢Òâ£º
-Èç¹ûnative_log.h±àÒë½øÁË¾²Ì¬¿â£¬ÄÇÃ´Ó¦¸ÃÔÚ°üº¬Õâ¸ö¾²Ì¬¿âµÄÄ£¿éÖÐ¶¨Òåºê¡£
+×¢ï¿½â£º
+ï¿½ï¿½ï¿½native_log.hï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¾ï¿½Ì¬ï¿½â£¬ï¿½ï¿½Ã´Ó¦ï¿½ï¿½ï¿½Ú°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¬ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½ê¡£
  */
-
+#define ALOGV(a,...)
+#define ALOGW(a,...)
+#define ALOGE(a,...)
 #define MY_LOG_LEVEL_VERBOSE 1
 #define MY_LOG_LEVEL_DEBUG 2
 #define MY_LOG_LEVEL_INFO 3
@@ -49,7 +51,7 @@ LOCAL_LDLIBS += -llog
 
 #define MY_LOG_NOOP (void) 0
 
-// ÊÇ·ñÒÑÏêÏ¸¸ñÊ½Êä³ö£¿
+// ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef MY_LOG_DETAIL
 # define MY_LOG_PRINT(level,fmt,...) \
  __android_log_print(level, MY_LOG_TAG, "{%s:%u} %s: [" fmt "]", \
@@ -110,4 +112,6 @@ fmt, ##__VA_ARGS__); \
 }
 #else
 # define MY_LOG_ASSERT(...) MY_LOG_NOOP
+
+
 #endif
