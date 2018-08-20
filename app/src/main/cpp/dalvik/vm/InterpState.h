@@ -4,6 +4,7 @@
 
 #ifndef CUSTOMAPPVMP_INTERPSTATE_H
 #define CUSTOMAPPVMP_INTERPSTATE_H
+typedef bool (*SafePointCallback)(struct Thread* thread, void* arg);
 struct InterpSaveState {
     const u2*       pc;         // Dalvik PC
     u4*             curFrame;   // Dalvik frame pointer
