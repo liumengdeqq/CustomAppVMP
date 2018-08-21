@@ -235,12 +235,75 @@ const u1* dexGetCatchHandlerData(const DexCode* pCode) {
     const DexTry* pTries = dexGetTries(pCode);
     return (const u1*) &pTries[pCode->triesSize];
 }
+enum {
+    kDexEndianConstant = 0x12345678,    /* the endianness indicator */
+    kDexNoIndex = 0xffffffff,           /* not a valid index value */
+};
 const char* dexStringAndSizeById(const DexFile* pDexFile, u4 idx,
                                  u4* utf16Size);
 /* return the StringId with the specified index */
 DEX_INLINE const DexStringId* dexGetStringId(const DexFile* pDexFile, u4 idx) {
     assert(idx < pDexFile->pHeader->stringIdsSize);
     return &pDexFile->pStringIds[idx];
+}
+DEX_INLINE const u1* dexGetDebugInfoStream(const DexFile* pDexFile,
+                                           const DexCode* pCode)
+{
+    if (pCode->debugInfoOff == 0) {
+        return NULL;
+    } else {
+        return pDexFile->baseAddr + pCode->debugInfoOff;
+    }
+}
+DEX_INLINE const DexProtoId* dexGetProtoId(const DexFile* pDexFile, u4 idx) {
+    assert(idx < pDexFile->pHeader->protoIdsSize);
+    return &pDexFile->pProtoIds[idx];
+}
+DEX_INLINE const char* dexGetStringData(const DexFile* pDexFile,
+                                        const DexStringId* pStringId) {
+    const u1* ptr = pDexFile->baseAddr + pStringId->stringDataOff;
+
+    // Skip the uleb128 length.
+    while (*(ptr++) > 0x7f) /* empty */ ;
+
+    return (const char*) ptr;
+}
+DEX_INLINE const char* dexStringById(const DexFile* pDexFile, u4 idx) {
+    const DexStringId* pStringId = dexGetStringId(pDexFile, idx);
+    return dexGetStringData(pDexFile, pStringId);
+}
+
+DEX_INLINE const char* dexStringById(const DexFile* pDexFile, u4 idx) {
+    const DexStringId* pStringId = dexGetStringId(pDexFile, idx);
+    return dexGetStringData(pDexFile, pStringId);
+}
+struct DexTypeItem {
+    u2  typeIdx;            /* index into typeIds */
+};
+struct DexTypeList {
+    u4  size;               /* #of entries in list */
+    DexTypeItem list[1];    /* entries */
+};
+
+DEX_INLINE const DexTypeItem* dexGetTypeItem(const DexTypeList* pList,
+                                             u4 idx)
+{
+    assert(idx < pList->size);
+    return &pList->list[idx];
+}
+/* return the type_idx for the Nth entry in a TypeList */
+DEX_INLINE u4 dexTypeListGetIdx(const DexTypeList* pList, u4 idx) {
+    const DexTypeItem* pItem = dexGetTypeItem(pList, idx);
+    return pItem->typeIdx;
+}
+DEX_INLINE const DexTypeId* dexGetTypeId(const DexFile* pDexFile, u4 idx) {
+    assert(idx < pDexFile->pHeader->typeIdsSize);
+    return &pDexFile->pTypeIds[idx];
+}
+
+DEX_INLINE const char* dexStringByTypeIdx(const DexFile* pDexFile, u4 idx) {
+    const DexTypeId* typeId = dexGetTypeId(pDexFile, idx);
+    return dexStringById(pDexFile, typeId->descriptorIdx);
 }
 
 #endif //DUMPDEX_DEXFILE_H_H

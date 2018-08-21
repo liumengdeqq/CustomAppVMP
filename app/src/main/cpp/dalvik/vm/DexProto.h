@@ -10,4 +10,14 @@ struct DexProto {
     const DexFile* dexFile;     /* file the idx refers to */
     u4 protoIdx;                /* index into proto_ids table of dexFile */
 };
+
+
+struct DexParameterIterator {
+    const DexProto* proto;
+    const DexTypeList* parameters;
+    int parameterCount;
+    int cursor;
+};
+
+int dexProtoComputeArgsSize(const DexProto* pProto);
 #endif //DUMPDEX_DEXPROTO_H

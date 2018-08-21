@@ -7,6 +7,7 @@
 #include "ReferenceTable.h"
 #include "Debugger.h"
 #include "Profile.h"
+#include <pthread.h>
 #ifndef CUSTOMAPPVMP_THREAD_H
 #define CUSTOMAPPVMP_THREAD_H
 union InterpBreak {
@@ -268,4 +269,44 @@ struct Monitor {
     const Method* ownerMethod;
     u4 ownerPc;
 };
+Thread* dvmThreadSelf(void);
+INLINE void dvmInitMutex(pthread_mutex_t* pMutex)
+{
+#ifdef CHECK_MUTEX
+    pthread_mutexattr_t attr;
+    int cc;
+
+    pthread_mutexattr_init(&attr);
+    cc = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK_NP);
+    assert(cc == 0);
+    pthread_mutex_init(pMutex, &attr);
+    pthread_mutexattr_destroy(&attr);
+#else
+    pthread_mutex_init(pMutex, NULL);       // default=PTHREAD_MUTEX_FAST_NP
+#endif
+}
+INLINE int dvmTryLockMutex(pthread_mutex_t* pMutex)
+{
+    int cc = pthread_mutex_trylock(pMutex);
+    assert(cc == 0 || cc == EBUSY);
+    return cc;
+}
+INLINE void dvmLockMutex(pthread_mutex_t* pMutex)
+{
+    int cc __attribute__ ((__unused__)) = pthread_mutex_lock(pMutex);
+    assert(cc == 0);
+}
+
+ThreadStatus dvmChangeStatus(Thread* self, ThreadStatus newStatus);
+INLINE void dvmWaitCond(pthread_cond_t* pCond, pthread_mutex_t* pMutex)
+{
+    int cc __attribute__ ((__unused__)) = pthread_cond_wait(pCond, pMutex);
+    assert(cc == 0);
+}
+INLINE void dvmUnlockMutex(pthread_mutex_t* pMutex)
+{
+    int cc __attribute__ ((__unused__)) = pthread_mutex_unlock(pMutex);
+    assert(cc == 0);
+}
+
 #endif //CUSTOMAPPVMP_THREAD_H

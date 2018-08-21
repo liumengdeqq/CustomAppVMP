@@ -537,5 +537,27 @@ struct Method {
     /* set if method was called during method profiling */
     bool            inProfile;
 };
-
+extern "C" const char* dvmGetMethodSourceFile(const Method* meth);
+INLINE bool dvmIsBytecodeMethod(const Method* method) {
+    return (method->accessFlags & (ACC_NATIVE | ACC_ABSTRACT)) == 0;
+}
+INLINE bool dvmIsNativeMethod(const Method* method) {
+    return (method->accessFlags & ACC_NATIVE) != 0;
+}
+INLINE const DexCode* dvmGetMethodCode(const Method* meth) {
+    if (dvmIsBytecodeMethod(meth)) {
+        /*
+         * The insns field for a bytecode method actually points at
+         * &(DexCode.insns), so we can subtract back to get at the
+         * DexCode in front.
+         */
+        return (const DexCode*)
+                (((const u1*) meth->insns) - offsetof(DexCode, insns));
+    } else {
+        return NULL;
+    }
+}
+INLINE bool dvmIsAbstractMethod(const Method* method) {
+    return (method->accessFlags & ACC_ABSTRACT) != 0;
+}
 #endif //DUMPDEX_OBJECT_H_H

@@ -4,6 +4,8 @@
 #include "Class.h"
 #include "Globals.h"
 #include "log.h"
+#include "Thread.h"
+#include "Sync.h"
 bool dvmInitClass(ClassObject* clazz)
 {
     u8 startWhen = 0;
