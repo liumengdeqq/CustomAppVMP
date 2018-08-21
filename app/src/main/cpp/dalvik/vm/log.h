@@ -33,6 +33,9 @@ LOCAL_LDLIBS += -llog
 #define ALOGW(a,...)
 #define ALOGE(a,...)
 #define ALOGI(a,...)
+#define ALOGD(a,...)
+#define LOG_VFY(a,...)
+#define LOG_VFY_METH(a,...)
 #define LOGVV(...) ((void)0)
 #define MY_LOG_LEVEL_VERBOSE 1
 #define MY_LOG_LEVEL_DEBUG 2

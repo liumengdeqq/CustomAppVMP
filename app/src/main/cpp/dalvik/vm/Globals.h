@@ -540,7 +540,7 @@ struct DvmGlobals {
     pthread_cond_t gcHeapCond;
 
     /* Opaque pointer representing the heap. */
-//    GcHeap*     gcHeap;
+    GcHeap*     gcHeap;
 
     /* The card table base, modified as needed for marking cards. */
     u1*         biasedCardTableBase;
