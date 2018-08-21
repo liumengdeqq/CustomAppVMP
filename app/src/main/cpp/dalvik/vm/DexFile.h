@@ -284,6 +284,21 @@ struct DexTypeList {
     u4  size;               /* #of entries in list */
     DexTypeItem list[1];    /* entries */
 };
+enum {
+    DBG_END_SEQUENCE         = 0x00,
+    DBG_ADVANCE_PC           = 0x01,
+    DBG_ADVANCE_LINE         = 0x02,
+    DBG_START_LOCAL          = 0x03,
+    DBG_START_LOCAL_EXTENDED = 0x04,
+    DBG_END_LOCAL            = 0x05,
+    DBG_RESTART_LOCAL        = 0x06,
+    DBG_SET_PROLOGUE_END     = 0x07,
+    DBG_SET_EPILOGUE_BEGIN   = 0x08,
+    DBG_SET_FILE             = 0x09,
+    DBG_FIRST_SPECIAL        = 0x0a,
+    DBG_LINE_BASE            = -4,
+    DBG_LINE_RANGE           = 15,
+};
 
 DEX_INLINE const DexTypeItem* dexGetTypeItem(const DexTypeList* pList,
                                              u4 idx)
@@ -304,6 +319,14 @@ DEX_INLINE const DexTypeId* dexGetTypeId(const DexFile* pDexFile, u4 idx) {
 DEX_INLINE const char* dexStringByTypeIdx(const DexFile* pDexFile, u4 idx) {
     const DexTypeId* typeId = dexGetTypeId(pDexFile, idx);
     return dexStringById(pDexFile, typeId->descriptorIdx);
+}
+DEX_INLINE const DexTypeList* dexGetProtoParameters(
+        const DexFile *pDexFile, const DexProtoId* pProtoId) {
+    if (pProtoId->parametersOff == 0) {
+        return NULL;
+    }
+    return (const DexTypeList*)
+            (pDexFile->baseAddr + pProtoId->parametersOff);
 }
 
 #endif //DUMPDEX_DEXFILE_H_H

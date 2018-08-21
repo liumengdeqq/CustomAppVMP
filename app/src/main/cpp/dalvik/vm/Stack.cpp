@@ -3,6 +3,7 @@
 //
 #include "Stack.h"
 #include <unistd.h>
+#include "DexDebugInfo.h"
 struct LineNumFromPcContext {
     u4 address;
     u4 lineNum;

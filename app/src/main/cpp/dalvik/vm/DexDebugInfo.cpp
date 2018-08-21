@@ -2,10 +2,11 @@
 // Created by liu meng on 2018/8/21.
 //
 #include "DexDebugInfo.h"
-#include "DexFile.h"
 #include <unistd.h>
 #include "DexProto.h"
 #include "Leb128.h"
+#include "log.h"
+#include <malloc.h>
 struct LocalInfo {
     const char *name;
     const char *descriptor;
@@ -24,6 +25,36 @@ static void emitLocalCbIfLive(void *cnxt, int reg, u4 endAddress,
                 ? "" : localInReg[reg].signature );
     }
 }
+
+static void invalidStream(const char* classDescriptor, const DexProto* proto) {
+        char* methodDescriptor = dexProtoCopyMethodDescriptor(proto);
+        ALOGE("Invalid debug info stream. class %s; proto %s",
+              classDescriptor, methodDescriptor);
+        free(methodDescriptor);
+}
+static const char* readStringIdx(const DexFile* pDexFile,
+                                 const u1** pStream) {
+    u4 stringIdx = readUnsignedLeb128(pStream);
+
+    // Remember, encoded string indicies have 1 added to them.
+    if (stringIdx == 0) {
+        return NULL;
+    } else {
+        return dexStringById(pDexFile, stringIdx - 1);
+    }
+}
+static const char* readTypeIdx(const DexFile* pDexFile,
+                               const u1** pStream) {
+    u4 typeIdx = readUnsignedLeb128(pStream);
+
+    // Remember, encoded type indicies have 1 added to them.
+    if (typeIdx == 0) {
+        return NULL;
+    } else {
+        return dexStringByTypeIdx(pDexFile, typeIdx - 1);
+    }
+}
+
 static void dexDecodeDebugInfo0(
         const DexFile* pDexFile,
         const DexCode* pCode,

@@ -6,6 +6,21 @@
 #include "log.h"
 #include "Thread.h"
 #include "Sync.h"
+#include "Exception.h"
+static void throwEarlierClassFailure(ClassObject* clazz);
+static void throwEarlierClassFailure(ClassObject* clazz)
+{
+    ALOGI("Rejecting re-init on previously-failed class %s v=%p",
+          clazz->descriptor, clazz->verifyErrorClass);
+
+    if (clazz->verifyErrorClass == NULL) {
+        dvmThrowNoClassDefFoundError(clazz->descriptor);
+    } else {
+        dvmThrowExceptionWithClassMessage(clazz->verifyErrorClass,
+                                          clazz->descriptor);
+    }
+}
+
 bool dvmInitClass(ClassObject* clazz)
 {
     u8 startWhen = 0;
