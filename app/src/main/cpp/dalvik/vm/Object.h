@@ -560,4 +560,7 @@ INLINE const DexCode* dvmGetMethodCode(const Method* meth) {
 INLINE bool dvmIsAbstractMethod(const Method* method) {
     return (method->accessFlags & ACC_ABSTRACT) != 0;
 }
+INLINE bool dvmIsClassLinked(const ClassObject* clazz) {
+    return clazz->status >= CLASS_RESOLVED;
+}
 #endif //DUMPDEX_OBJECT_H_H
