@@ -563,4 +563,8 @@ INLINE bool dvmIsAbstractMethod(const Method* method) {
 INLINE bool dvmIsClassLinked(const ClassObject* clazz) {
     return clazz->status >= CLASS_RESOLVED;
 }
+INLINE bool dvmIsClassVerified(const ClassObject* clazz) {
+    return clazz->status >= CLASS_VERIFIED;
+}
+
 #endif //DUMPDEX_OBJECT_H_H
