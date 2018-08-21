@@ -21,5 +21,5 @@ struct ClassPathEntry {
     char*   fileName;
     void*   ptr;            /* JarFile* or DexFile* */
 };
-
+bool dvmInitClass(ClassObject* clazz);
 #endif //CUSTOMAPPVMP_CLASS_H

@@ -9,5 +9,5 @@ u8 dvmGetRelativeTimeNsec(void);
 INLINE u8 dvmGetRelativeTimeUsec(void) {
     return dvmGetRelativeTimeNsec() / 1000;
 }
-
+char* dvmDescriptorToName(const char* str);
 #endif //CUSTOMAPPVMP_MISC_H

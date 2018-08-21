@@ -14,6 +14,8 @@
 #include "BitVector.h"
 #define _AVMP_DEBUG_
 
+#include "Profile.h"
+#include "Thread.h"
 extern const char* gYcFileName;
 
 typedef struct _ADVMPGlobals {
@@ -664,7 +666,7 @@ struct DvmGlobals {
     /*
      * Global state for memory allocation profiling.
      */
-//    AllocProfState allocProf;
+    AllocProfState allocProf;
 
     /*
      * Pointers to the original methods for things that have been inlined.

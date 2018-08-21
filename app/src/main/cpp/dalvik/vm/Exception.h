@@ -23,7 +23,15 @@
 void dvmThrowNullPointerException(JNIEnv* env, const char* msg);
 
 void dvmThrowArrayIndexOutOfBoundsException(JNIEnv* env, int length, int index);
-
+void dvmThrowChainedExceptionWithClassMessage(
+        ClassObject* exceptionClass, const char* messageDescriptor,
+        Object* cause);
 void dvmThrowArithmeticException(JNIEnv* env, const char* msg);
+INLINE void dvmThrowExceptionWithClassMessage(
+        ClassObject* exceptionClass, const char* messageDescriptor)
+{
+    dvmThrowChainedExceptionWithClassMessage(exceptionClass,
+                                             messageDescriptor, NULL);
+}
 
 #endif  // DALVIK_EXCEPTION_H_
