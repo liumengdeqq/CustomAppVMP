@@ -566,5 +566,9 @@ INLINE bool dvmIsClassLinked(const ClassObject* clazz) {
 INLINE bool dvmIsClassVerified(const ClassObject* clazz) {
     return clazz->status >= CLASS_VERIFIED;
 }
+INLINE u4 dvmGetMethodInsnsSize(const Method* meth) {
+    const DexCode* pCode = dvmGetMethodCode(meth);
+    return (pCode == NULL) ? 0 : pCode->insnsSize;
+}
 
 #endif //DUMPDEX_OBJECT_H_H
