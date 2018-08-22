@@ -10,4 +10,5 @@ enum DexClassVerifyMode {
     VERIFY_MODE_REMOTE,
     VERIFY_MODE_ALL
 };
+bool dvmVerifyClass(ClassObject* clazz);
 #endif //CUSTOMAPPVMP_DEXVERIFY_H

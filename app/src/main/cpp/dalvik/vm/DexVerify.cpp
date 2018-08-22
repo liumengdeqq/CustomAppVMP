@@ -5,6 +5,9 @@
 #include "log.h"
 #include "object.h"
 #include <unistd.h>
+#include "CodeVerify.h"
+static bool verifyMethod(Method* meth);
+
 static bool verifyMethod(Method* meth)
 {
     bool result = false;
