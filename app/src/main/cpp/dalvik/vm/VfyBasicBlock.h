@@ -15,4 +15,5 @@ struct VfyBasicBlock {
     bool            visited;        /* block has been visited at least once */
 };
 
+
 #endif //CUSTOMAPPVMP_VFYBASICBLOCK_H
