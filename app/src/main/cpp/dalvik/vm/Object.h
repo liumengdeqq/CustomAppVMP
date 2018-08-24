@@ -9,6 +9,8 @@
 #include "DvmDex.h"
 #include "DexProto.h"
 #include "RegisterMap.h"
+struct  Method;
+struct ClassObject;
 typedef void (*DalvikBridgeFunc)(const u4* args, JValue* pResult,
                                  const Method* method, struct Thread* self);
 /* vm-internal access flags and related definitions */
@@ -570,5 +572,7 @@ INLINE u4 dvmGetMethodInsnsSize(const Method* meth) {
     const DexCode* pCode = dvmGetMethodCode(meth);
     return (pCode == NULL) ? 0 : pCode->insnsSize;
 }
-
+INLINE bool dvmIsStaticMethod(const Method* method) {
+    return (method->accessFlags & ACC_STATIC) != 0;
+}
 #endif //DUMPDEX_OBJECT_H_H

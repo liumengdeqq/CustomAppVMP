@@ -32,4 +32,12 @@ const char* dexParameterIteratorNextDescriptor(
 void dexParameterIteratorInit(DexParameterIterator* pIterator,
                               const DexProto* pProto);
 char* dexProtoCopyMethodDescriptor(const DexProto* pProto);
+static inline const DexProtoId* getProtoId(const DexProto* pProto) {
+    return dexGetProtoId(pProto->dexFile, pProto->protoIdx);
+}
+
+const char* dexProtoGetReturnType(const DexProto* pProto) {
+    const DexProtoId* protoId = getProtoId(pProto);
+    return dexStringByTypeIdx(pProto->dexFile, protoId->returnTypeIdx);
+}
 #endif //DUMPDEX_DEXPROTO_H

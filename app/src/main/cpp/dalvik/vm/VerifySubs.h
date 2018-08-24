@@ -4,6 +4,7 @@
 #include "common.h"
 #include "DexOpcodes.h"
 #include "object.h"
+#include <string.h>
 #ifndef CUSTOMAPPVMP_VERIFYSUBS_H
 #define CUSTOMAPPVMP_VERIFYSUBS_H
 typedef u4 InsnFlags;
@@ -53,5 +54,10 @@ bool dvmGetBranchOffset(const Method* meth, const InsnFlags* insnFlags,
 
     return true;
 }
+bool dvmWantVerboseVerification(const Method* meth)
+{
+    return false;       /* COMMENT OUT to enable verbose debugging */
 
+
+}
 #endif //CUSTOMAPPVMP_VERIFYSUBS_H

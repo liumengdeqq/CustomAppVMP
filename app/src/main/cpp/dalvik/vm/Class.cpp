@@ -7,6 +7,7 @@
 #include "Thread.h"
 #include "Sync.h"
 #include "Exception.h"
+#include "ObjectInlines.h"
 static void throwEarlierClassFailure(ClassObject* clazz);
 static void throwEarlierClassFailure(ClassObject* clazz)
 {

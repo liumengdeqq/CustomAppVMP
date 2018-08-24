@@ -3,6 +3,7 @@
 #include "Exception.h"
 #include "InterpC.h"
 #include "DvmDex.h"
+#include "Resolve.h"
 //////////////////////////////////////////////////////////////////////////
 
 inline void dvmAbort(void) {

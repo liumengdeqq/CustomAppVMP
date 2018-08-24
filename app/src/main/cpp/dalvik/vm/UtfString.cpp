@@ -4,6 +4,8 @@
 #include "Class.h"
 #include "log.h"
 #include "Globals.h"
+#include "Alloc.h"
+#include "Array.h"
 //
 // Created by liu meng on 2018/8/20.
 //
@@ -21,7 +23,7 @@ static StringObject* makeStringObject(u4 charsLength, ArrayObject** pChars)
     if (!dvmIsClassInitialized(gDvm.classJavaLangString)) {
         /* Perform first-time use initialization of the class. */
         if (!dvmInitClass(gDvm.classJavaLangString)) {
-            MY_LOG_PRINT("FATAL: Could not initialize class String");
+            ALOGI("FATAL: Could not initialize class String");
             dvmAbort();
         }
     }

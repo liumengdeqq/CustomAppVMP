@@ -2,6 +2,7 @@
 // Created by liu meng on 2018/8/21.
 //
 #include "object.h"
+#include "HeapSource.h"
 #ifndef CUSTOMAPPVMP_HEAPINTERNAL_H
 #define CUSTOMAPPVMP_HEAPINTERNAL_H
 struct GcHeap {
@@ -24,7 +25,7 @@ struct GcHeap {
     /* The current state of the mark step.
      * Only valid during a GC.
      */
-    GcMarkContext markContext;
+//    GcMarkContext markContext;
 
     /* GC's card table */
     u1* cardTableBase;

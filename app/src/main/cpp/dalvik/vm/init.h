@@ -4,5 +4,4 @@
 
 #ifndef CUSTOMAPPVMP_INIT_H
 #define CUSTOMAPPVMP_INIT_H
-struct DvmGlobals gDvm;
 #endif //CUSTOMAPPVMP_INIT_H

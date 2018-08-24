@@ -83,7 +83,7 @@ typedef int64_t             s8;
  * little-endian systems.
  */
 struct Object;
-
+#define HAVE_LITTLE_ENDIAN
 union JValue {
 #if defined(HAVE_LITTLE_ENDIAN)
     u1      z;

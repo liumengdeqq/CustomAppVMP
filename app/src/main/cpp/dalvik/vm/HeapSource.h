@@ -1,7 +1,59 @@
 //
-// Created by liu meng on 2018/8/21.
+// Created by liu meng on 2018/8/24.
 //
-#include <stddef.h>
+#include "common.h"
+#include "Globals.h"
+#ifndef CUSTOMAPPVMP_HEAPSOURCE_H
+#define CUSTOMAPPVMP_HEAPSOURCE_H
+struct HeapSource *gHs = NULL;
+typedef void* mspace;
+#define HS_BOILERPLATE() \
+    do { \
+        assert(gDvm.gcHeap != NULL); \
+        assert(gDvm.gcHeap->heapSource != NULL); \
+        assert(gHs == gDvm.gcHeap->heapSource); \
+    } while (0)
+struct Heap {
+    /* The mspace to allocate from.
+     */
+    mspace msp;
+
+    /* The largest size that this heap is allowed to grow to.
+     */
+    size_t maximumSize;
+
+    /* Number of bytes allocated from this mspace for objects,
+     * including any overhead.  This value is NOT exact, and
+     * should only be used as an input for certain heuristics.
+     */
+    size_t bytesAllocated;
+
+    /* Number of bytes allocated from this mspace at which a
+     * concurrent garbage collection will be started.
+     */
+    size_t concurrentStartBytes;
+
+    /* Number of objects currently allocated from this mspace.
+     */
+    size_t objectsAllocated;
+
+    /*
+     * The lowest address of this heap, inclusive.
+     */
+    char *base;
+
+    /*
+     * The highest address of this heap, exclusive.
+     */
+    char *limit;
+
+    /*
+     * If the heap has an mspace, the current high water mark in
+     * allocations requested via dvmHeapSourceMorecore.
+     */
+    char *brk;
+};
+
 struct HeapSource {
     /* Target ideal heap utilization ratio; range 1..HEAP_UTILIZATION_MAX
      */
@@ -73,12 +125,12 @@ struct HeapSource {
     /*
      * The live object bitmap.
      */
-    HeapBitmap liveBits;
+//    HeapBitmap liveBits;
 
     /*
      * The mark bitmap.
      */
-    HeapBitmap markBits;
+//    HeapBitmap markBits;
 
     /*
      * Native allocations.
@@ -98,3 +150,4 @@ struct HeapSource {
     pthread_cond_t gcThreadCond;
     bool gcThreadTrimNeeded;
 };
+#endif //CUSTOMAPPVMP_HEAPSOURCE_H

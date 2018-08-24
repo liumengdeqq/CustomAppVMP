@@ -12,6 +12,8 @@
 #include "Class.h"
 #include "Hash.h"
 #include "BitVector.h"
+#include "HeapInternal.h"
+#include "AllocTracker.h"
 #define _AVMP_DEBUG_
 
 #include "Profile.h"
@@ -634,7 +636,7 @@ struct DvmGlobals {
      * non-NULL.
      */
     pthread_mutex_t allocTrackerLock;
-//    AllocRecord*    allocRecords;
+    AllocRecord*    allocRecords;
     int             allocRecordHead;        /* most-recently-added entry */
     int             allocRecordCount;       /* #of valid entries */
     int             allocRecordMax;         /* Number of allocated entries. */
