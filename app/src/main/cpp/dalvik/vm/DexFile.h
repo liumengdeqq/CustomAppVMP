@@ -421,4 +421,5 @@ PrimitiveType dexGetPrimitiveTypeFromDescriptorChar(char descriptorChar) {
         default:  return PRIM_NOT;
     }
 }
+
 #endif //DUMPDEX_DEXFILE_H_H

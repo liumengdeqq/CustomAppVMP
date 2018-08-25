@@ -40,4 +40,10 @@ const char* dexProtoGetReturnType(const DexProto* pProto) {
     const DexProtoId* protoId = getProtoId(pProto);
     return dexStringByTypeIdx(pProto->dexFile, protoId->returnTypeIdx);
 }
+size_t dexProtoGetParameterCount(const DexProto* pProto) {
+    const DexProtoId* protoId = getProtoId(pProto);
+    const DexTypeList* typeList =
+            dexGetProtoParameters(pProto->dexFile, protoId);
+    return (typeList == NULL) ? 0 : typeList->size;
+}
 #endif //DUMPDEX_DEXPROTO_H
