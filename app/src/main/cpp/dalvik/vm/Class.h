@@ -22,4 +22,5 @@ struct ClassPathEntry {
     void*   ptr;            /* JarFile* or DexFile* */
 };
 bool dvmInitClass(ClassObject* clazz);
+ClassObject* dvmFindPrimitiveClass(char type);
 #endif //CUSTOMAPPVMP_CLASS_H

@@ -1,6 +1,8 @@
 //
 // Created by liu meng on 2018/8/21.
 //
+#ifndef CUSTOMAPPVMP_ALLOC_H
+#define CUSTOMAPPVMP_ALLOC_H
 #include "object.h"
 #include "Alloc.h"
 #include "Class.h"
@@ -9,8 +11,7 @@
 #include "Array.h"
 #include "TypeCheck.h"
 #include "MarkSweep.h"
-#ifndef CUSTOMAPPVMP_ALLOC_H
-#define CUSTOMAPPVMP_ALLOC_H
+#include "ReferenceTable.h"
 enum {
     ALLOC_DEFAULT = 0x00,
     ALLOC_DONT_TRACK = 0x01,  /* don't add to internal tracking list */
@@ -104,4 +105,18 @@ Object* dvmCloneObject(Object* obj, int flags)
     return copy;
 }
 
+void dvmAddTrackedAlloc(Object* obj, Thread* self)
+{
+    if (self == NULL)
+        self = dvmThreadSelf();
+
+    assert(obj != NULL);
+    assert(self != NULL);
+    if (!dvmAddToReferenceTable(&self->internalLocalRefTable, obj)) {
+        ALOGE("threadid=%d: unable to add %p to internal ref table",
+              self->threadId, obj);
+        dvmDumpThread(self, false);
+        dvmAbort();
+    }
+}
 #endif //CUSTOMAPPVMP_ALLOC_H

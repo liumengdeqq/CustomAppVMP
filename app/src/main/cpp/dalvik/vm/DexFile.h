@@ -60,6 +60,31 @@ enum {
      | ACC_ABSTRACT | ACC_STRICT | ACC_SYNTHETIC | ACC_CONSTRUCTOR
      | ACC_DECLARED_SYNCHRONIZED),
 };
+enum {
+    kDexVisibilityBuild         = 0x00,     /* annotation visibility */
+    kDexVisibilityRuntime       = 0x01,
+    kDexVisibilitySystem        = 0x02,
+
+    kDexAnnotationByte          = 0x00,
+    kDexAnnotationShort         = 0x02,
+    kDexAnnotationChar          = 0x03,
+    kDexAnnotationInt           = 0x04,
+    kDexAnnotationLong          = 0x06,
+    kDexAnnotationFloat         = 0x10,
+    kDexAnnotationDouble        = 0x11,
+    kDexAnnotationString        = 0x17,
+    kDexAnnotationType          = 0x18,
+    kDexAnnotationField         = 0x19,
+    kDexAnnotationMethod        = 0x1a,
+    kDexAnnotationEnum          = 0x1b,
+    kDexAnnotationArray         = 0x1c,
+    kDexAnnotationAnnotation    = 0x1d,
+    kDexAnnotationNull          = 0x1e,
+    kDexAnnotationBoolean       = 0x1f,
+
+    kDexAnnotationValueTypeMask = 0x1f,     /* low 5 bits */
+    kDexAnnotationValueArgShift = 5,
+};
 
 struct DexCode {
     u2  registersSize;
@@ -183,7 +208,9 @@ struct DexClassLookup {
         int     classDefOffset;         // in bytes, from start of DEX
     } table[1];
 };
-
+struct DexEncodedArray {
+    u1  array[1];                   /* data in encoded_array format */
+};
 struct DexFile {
     /* directly-mapped "opt" header */
     const DexOptHeader* pOptHeader;
@@ -328,5 +355,70 @@ DEX_INLINE const DexTypeList* dexGetProtoParameters(
     return (const DexTypeList*)
             (pDexFile->baseAddr + pProtoId->parametersOff);
 }
+static u4 classDescriptorHash(const char* str)
+{
+    u4 hash = 1;
 
+    while (*str != '\0')
+        hash = hash * 31 + *str++;
+
+    return hash;
+}
+
+const DexClassDef* dexFindClass(const DexFile* pDexFile,
+                                const char* descriptor)
+{
+    const DexClassLookup* pLookup = pDexFile->pClassLookup;
+    u4 hash;
+    int idx, mask;
+
+    hash = classDescriptorHash(descriptor);
+    mask = pLookup->numEntries - 1;
+    idx = hash & mask;
+
+    /*
+     * Search until we find a matching entry or an empty slot.
+     */
+    while (true) {
+        int offset;
+
+        offset = pLookup->table[idx].classDescriptorOffset;
+        if (offset == 0)
+            return NULL;
+
+        if (pLookup->table[idx].classDescriptorHash == hash) {
+            const char* str;
+
+            str = (const char*) (pDexFile->baseAddr + offset);
+            if (strcmp(str, descriptor) == 0) {
+                return (const DexClassDef*)
+                        (pDexFile->baseAddr + pLookup->table[idx].classDefOffset);
+            }
+        }
+
+        idx = (idx + 1) & mask;
+    }
+}
+DEX_INLINE const DexEncodedArray* dexGetStaticValuesList(
+        const DexFile* pDexFile, const DexClassDef* pClassDef)
+{
+    if (pClassDef->staticValuesOff == 0)
+        return NULL;
+    return (const DexEncodedArray*)
+            (pDexFile->baseAddr + pClassDef->staticValuesOff);
+}
+PrimitiveType dexGetPrimitiveTypeFromDescriptorChar(char descriptorChar) {
+    switch (descriptorChar) {
+        case 'V': return PRIM_VOID;
+        case 'Z': return PRIM_BOOLEAN;
+        case 'B': return PRIM_BYTE;
+        case 'S': return PRIM_SHORT;
+        case 'C': return PRIM_CHAR;
+        case 'I': return PRIM_INT;
+        case 'J': return PRIM_LONG;
+        case 'F': return PRIM_FLOAT;
+        case 'D': return PRIM_DOUBLE;
+        default:  return PRIM_NOT;
+    }
+}
 #endif //DUMPDEX_DEXFILE_H_H

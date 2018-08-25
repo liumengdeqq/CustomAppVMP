@@ -10,6 +10,8 @@
 #include "ObjectInlines.h"
 #include "Misc.h"
 #include "Interp.h"
+#include "Reflect.h"
+#include "Annotation.h"
 static void throwEarlierClassFailure(ClassObject* clazz);
 static void throwEarlierClassFailure(ClassObject* clazz)
 {
@@ -629,4 +631,24 @@ bool dvmInitClass(ClassObject* clazz)
     dvmUnlockObject(self, (Object*) clazz);
 
     return (clazz->status != CLASS_ERROR);
+}
+ClassObject* dvmFindPrimitiveClass(char type)
+{
+    PrimitiveType primitiveType = dexGetPrimitiveTypeFromDescriptorChar(type);
+
+    switch (primitiveType) {
+        case PRIM_VOID:    return gDvm.typeVoid;
+        case PRIM_BOOLEAN: return gDvm.typeBoolean;
+        case PRIM_BYTE:    return gDvm.typeByte;
+        case PRIM_SHORT:   return gDvm.typeShort;
+        case PRIM_CHAR:    return gDvm.typeChar;
+        case PRIM_INT:     return gDvm.typeInt;
+        case PRIM_LONG:    return gDvm.typeLong;
+        case PRIM_FLOAT:   return gDvm.typeFloat;
+        case PRIM_DOUBLE:  return gDvm.typeDouble;
+        default: {
+            ALOGW("Unknown primitive type '%c'", type);
+            return NULL;
+        }
+    }
 }
