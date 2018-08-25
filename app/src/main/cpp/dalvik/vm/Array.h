@@ -133,4 +133,22 @@ size_t dvmArrayObjectSize(const ArrayObject *array)
     size += array->length * dvmArrayClassElementWidth(array->clazz);
     return size;
 }
+ClassObject* dvmFindArrayClass(const char* descriptor, Object* loader)
+{
+    ClassObject* clazz;
+
+    assert(descriptor[0] == '[');
+    //ALOGV("dvmFindArrayClass: '%s' %p", descriptor, loader);
+
+    clazz = dvmLookupClass(descriptor, loader, false);
+    if (clazz == NULL) {
+        ALOGV("Array class '%s' %p not found; creating", descriptor, loader);
+        clazz = createArrayClass(descriptor, loader);
+        if (clazz != NULL)
+            dvmAddInitiatingLoader(clazz, loader);
+    }
+
+    return clazz;
+}
+
 #endif //CUSTOMAPPVMP_ARRAY_H

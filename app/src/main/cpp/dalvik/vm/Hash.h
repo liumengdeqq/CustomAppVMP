@@ -180,4 +180,10 @@ bool dvmHashTableRemove(HashTable* pHashTable, u4 itemHash, void* item)
 
     return false;
 }
+INLINE void dvmHashTableLock(HashTable* pHashTable) {
+    dvmLockMutex(&pHashTable->lock);
+}
+INLINE void dvmHashTableUnlock(HashTable* pHashTable) {
+    dvmUnlockMutex(&pHashTable->lock);
+}
 #endif //CUSTOMAPPVMP_HASH_H

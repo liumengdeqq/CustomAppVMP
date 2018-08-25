@@ -71,5 +71,7 @@ void dvmThrowUnsatisfiedLinkError(const char* msg, const Method* method);
 void dvmThrowLinkageError(const char* msg) {
     dvmThrowException(gDvm.exLinkageError, msg);
 }
-
+INLINE void dvmClearException(Thread* self) {
+    self->exception = NULL;
+}
 #endif  // DALVIK_EXCEPTION_H_

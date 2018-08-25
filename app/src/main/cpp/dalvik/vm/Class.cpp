@@ -25,6 +25,428 @@ static void throwEarlierClassFailure(ClassObject* clazz)
                                           clazz->descriptor);
     }
 }
+void dvmAddInitiatingLoader(ClassObject* clazz, Object* loader)
+{
+    if (loader != clazz->classLoader) {
+        assert(loader != NULL);
+
+        LOGVV("Adding %p to '%s' init list", loader, clazz->descriptor);
+        dvmHashTableLock(gDvm.loadedClasses);
+
+        /*
+         * Make sure nobody snuck in.  The penalty for adding twice is
+         * pretty minor, and probably outweighs the O(n^2) hit for
+         * checking before every add, so we may not want to do this.
+         */
+        //if (dvmLoaderInInitiatingList(clazz, loader)) {
+        //    ALOGW("WOW: simultaneous add of initiating class loader");
+        //    goto bail_unlock;
+        //}
+
+        /*
+         * The list never shrinks, so we just keep a count of the
+         * number of elements in it, and reallocate the buffer when
+         * we run off the end.
+         *
+         * The pointer is initially NULL, so we *do* want to call realloc
+         * when count==0.
+         */
+        InitiatingLoaderList *loaderList = dvmGetInitiatingLoaderList(clazz);
+        if ((loaderList->initiatingLoaderCount & (kInitLoaderInc-1)) == 0) {
+            Object** newList;
+
+            newList = (Object**) realloc(loaderList->initiatingLoaders,
+                                         (loaderList->initiatingLoaderCount + kInitLoaderInc)
+                                         * sizeof(Object*));
+            if (newList == NULL) {
+                /* this is mainly a cache, so it's not the EotW */
+                assert(false);
+                goto bail_unlock;
+            }
+            loaderList->initiatingLoaders = newList;
+
+            //ALOGI("Expanded init list to %d (%s)",
+            //    loaderList->initiatingLoaderCount+kInitLoaderInc,
+            //    clazz->descriptor);
+        }
+        loaderList->initiatingLoaders[loaderList->initiatingLoaderCount++] =
+                loader;
+
+        bail_unlock:
+        dvmHashTableUnlock(gDvm.loadedClasses);
+    }
+}
+static ClassObject* findClassFromLoaderNoInit(const char* descriptor,
+                                              Object* loader)
+{
+    //ALOGI("##### findClassFromLoaderNoInit (%s,%p)",
+    //        descriptor, loader);
+
+    Thread* self = dvmThreadSelf();
+
+    assert(loader != NULL);
+
+    /*
+     * Do we already have it?
+     *
+     * The class loader code does the "is it already loaded" check as
+     * well.  However, this call is much faster than calling through
+     * interpreted code.  Doing this does mean that in the common case
+     * (365 out of 420 calls booting the sim) we're doing the
+     * lookup-by-descriptor twice.  It appears this is still a win, so
+     * I'm keeping it in.
+     */
+    ClassObject* clazz = dvmLookupClass(descriptor, loader, false);
+    if (clazz != NULL) {
+        LOGVV("Already loaded: %s %p", descriptor, loader);
+        return clazz;
+    } else {
+        LOGVV("Not already loaded: %s %p", descriptor, loader);
+    }
+
+    char* dotName = NULL;
+    StringObject* nameObj = NULL;
+
+    /* convert "Landroid/debug/Stuff;" to "android.debug.Stuff" */
+    dotName = dvmDescriptorToDot(descriptor);
+    if (dotName == NULL) {
+        dvmThrowOutOfMemoryError(NULL);
+        return NULL;
+    }
+    nameObj = dvmCreateStringFromCstr(dotName);
+    if (nameObj == NULL) {
+        assert(dvmCheckException(self));
+        goto bail;
+    }
+
+    dvmMethodTraceClassPrepBegin();
+
+    /*
+     * Invoke loadClass().  This will probably result in a couple of
+     * exceptions being thrown, because the ClassLoader.loadClass()
+     * implementation eventually calls VMClassLoader.loadClass to see if
+     * the bootstrap class loader can find it before doing its own load.
+     */
+    LOGVV("--- Invoking loadClass(%s, %p)", dotName, loader);
+    {
+        const Method* loadClass =
+                loader->clazz->vtable[gDvm.voffJavaLangClassLoader_loadClass];
+        JValue result;
+        dvmCallMethod(self, loadClass, loader, &result, nameObj);
+        clazz = (ClassObject*) result.l;
+
+        dvmMethodTraceClassPrepEnd();
+        Object* excep = dvmGetException(self);
+        if (excep != NULL) {
+#if DVM_SHOW_EXCEPTION >= 2
+            ALOGD("NOTE: loadClass '%s' %p threw exception %s",
+                 dotName, loader, excep->clazz->descriptor);
+#endif
+            dvmAddTrackedAlloc(excep, self);
+            dvmClearException(self);
+            dvmThrowChainedNoClassDefFoundError(descriptor, excep);
+            dvmReleaseTrackedAlloc(excep, self);
+            clazz = NULL;
+            goto bail;
+        } else if (clazz == NULL) {
+            ALOGW("ClassLoader returned NULL w/o exception pending");
+            dvmThrowNullPointerException("ClassLoader returned null");
+            goto bail;
+        }
+    }
+
+    /* not adding clazz to tracked-alloc list, because it's a ClassObject */
+
+    dvmAddInitiatingLoader(clazz, loader);
+
+    LOGVV("--- Successfully loaded %s %p (thisldr=%p clazz=%p)",
+          descriptor, clazz->classLoader, loader, clazz);
+
+    bail:
+    dvmReleaseTrackedAlloc((Object*)nameObj, NULL);
+    free(dotName);
+    return clazz;
+}
+static ClassObject* findClassNoInit(const char* descriptor, Object* loader,
+                                    DvmDex* pDvmDex)
+{
+    Thread* self = dvmThreadSelf();
+    ClassObject* clazz;
+    bool profilerNotified = false;
+
+    if (loader != NULL) {
+        LOGVV("#### findClassNoInit(%s,%p,%p)", descriptor, loader,
+              pDvmDex->pDexFile);
+    }
+
+    /*
+     * We don't expect an exception to be raised at this point.  The
+     * exception handling code is good about managing this.  This *can*
+     * happen if a JNI lookup fails and the JNI code doesn't do any
+     * error checking before doing another class lookup, so we may just
+     * want to clear this and restore it on exit.  If we don't, some kinds
+     * of failures can't be detected without rearranging other stuff.
+     *
+     * Most often when we hit this situation it means that something is
+     * broken in the VM or in JNI code, so I'm keeping it in place (and
+     * making it an informative abort rather than an assert).
+     */
+    if (dvmCheckException(self)) {
+        ALOGE("Class lookup %s attempted with exception pending", descriptor);
+        ALOGW("Pending exception is:");
+        dvmLogExceptionStackTrace();
+        dvmDumpAllThreads(false);
+        dvmAbort();
+    }
+
+    clazz = dvmLookupClass(descriptor, loader, true);
+    if (clazz == NULL) {
+        const DexClassDef* pClassDef;
+
+        dvmMethodTraceClassPrepBegin();
+        profilerNotified = true;
+
+#if LOG_CLASS_LOADING
+        u8 startTime = dvmGetThreadCpuTimeNsec();
+#endif
+
+        if (pDvmDex == NULL) {
+            assert(loader == NULL);     /* shouldn't be here otherwise */
+            pDvmDex = searchBootPathForClass(descriptor, &pClassDef);
+        } else {
+            pClassDef = dexFindClass(pDvmDex->pDexFile, descriptor);
+        }
+
+        if (pDvmDex == NULL || pClassDef == NULL) {
+            if (gDvm.noClassDefFoundErrorObj != NULL) {
+                /* usual case -- use prefabricated object */
+                dvmSetException(self, gDvm.noClassDefFoundErrorObj);
+            } else {
+                /* dexopt case -- can't guarantee prefab (core.jar) */
+                dvmThrowNoClassDefFoundError(descriptor);
+            }
+            goto bail;
+        }
+
+        /* found a match, try to load it */
+        clazz = loadClassFromDex(pDvmDex, pClassDef, loader);
+        if (dvmCheckException(self)) {
+            /* class was found but had issues */
+            if (clazz != NULL) {
+                dvmFreeClassInnards(clazz);
+                dvmReleaseTrackedAlloc((Object*) clazz, NULL);
+            }
+            goto bail;
+        }
+
+        /*
+         * Lock the class while we link it so other threads must wait for us
+         * to finish.  Set the "initThreadId" so we can identify recursive
+         * invocation.  (Note all accesses to initThreadId here are
+         * guarded by the class object's lock.)
+         */
+        dvmLockObject(self, (Object*) clazz);
+        clazz->initThreadId = self->threadId;
+
+        /*
+         * Add to hash table so lookups succeed.
+         *
+         * [Are circular references possible when linking a class?]
+         */
+        assert(clazz->classLoader == loader);
+        if (!dvmAddClassToHash(clazz)) {
+            /*
+             * Another thread must have loaded the class after we
+             * started but before we finished.  Discard what we've
+             * done and leave some hints for the GC.
+             *
+             * (Yes, this happens.)
+             */
+            //ALOGW("WOW: somebody loaded %s simultaneously", descriptor);
+            clazz->initThreadId = 0;
+            dvmUnlockObject(self, (Object*) clazz);
+
+            /* Let the GC free the class.
+             */
+            dvmFreeClassInnards(clazz);
+            dvmReleaseTrackedAlloc((Object*) clazz, NULL);
+
+            /* Grab the winning class.
+             */
+            clazz = dvmLookupClass(descriptor, loader, true);
+            assert(clazz != NULL);
+            goto got_class;
+        }
+        dvmReleaseTrackedAlloc((Object*) clazz, NULL);
+
+#if LOG_CLASS_LOADING
+        logClassLoadWithTime('>', clazz, startTime);
+#endif
+        /*
+         * Prepare and resolve.
+         */
+        if (!dvmLinkClass(clazz)) {
+            assert(dvmCheckException(self));
+
+            /* Make note of the error and clean up the class.
+             */
+            removeClassFromHash(clazz);
+            clazz->status = CLASS_ERROR;
+            dvmFreeClassInnards(clazz);
+
+            /* Let any waiters know.
+             */
+            clazz->initThreadId = 0;
+            dvmObjectNotifyAll(self, (Object*) clazz);
+            dvmUnlockObject(self, (Object*) clazz);
+
+#if LOG_CLASS_LOADING
+            ALOG(LOG_INFO, "DVMLINK FAILED FOR CLASS ", "%s in %s",
+                clazz->descriptor, get_process_name());
+
+            /*
+             * TODO: It would probably be better to use a new type code here (instead of '<') to
+             * indicate the failure.  This change would require a matching change in the parser
+             * and analysis code in frameworks/base/tools/preload.
+             */
+            logClassLoad('<', clazz);
+#endif
+            clazz = NULL;
+            if (gDvm.optimizing) {
+                /* happens with "external" libs */
+                ALOGV("Link of class '%s' failed", descriptor);
+            } else {
+                ALOGW("Link of class '%s' failed", descriptor);
+            }
+            goto bail;
+        }
+        dvmObjectNotifyAll(self, (Object*) clazz);
+        dvmUnlockObject(self, (Object*) clazz);
+
+        /*
+         * Add class stats to global counters.
+         *
+         * TODO: these should probably be atomic ops.
+         */
+        gDvm.numLoadedClasses++;
+        gDvm.numDeclaredMethods +=
+                clazz->virtualMethodCount + clazz->directMethodCount;
+        gDvm.numDeclaredInstFields += clazz->ifieldCount;
+        gDvm.numDeclaredStaticFields += clazz->sfieldCount;
+
+        /*
+         * Cache pointers to basic classes.  We want to use these in
+         * various places, and it's easiest to initialize them on first
+         * use rather than trying to force them to initialize (startup
+         * ordering makes it weird).
+         */
+        if (gDvm.classJavaLangObject == NULL &&
+            strcmp(descriptor, "Ljava/lang/Object;") == 0)
+        {
+            /* It should be impossible to get here with anything
+             * but the bootclasspath loader.
+             */
+            assert(loader == NULL);
+            gDvm.classJavaLangObject = clazz;
+        }
+
+#if LOG_CLASS_LOADING
+        logClassLoad('<', clazz);
+#endif
+
+    } else {
+        got_class:
+        if (!dvmIsClassLinked(clazz) && clazz->status != CLASS_ERROR) {
+            /*
+             * We can race with other threads for class linking.  We should
+             * never get here recursively; doing so indicates that two
+             * classes have circular dependencies.
+             *
+             * One exception: we force discovery of java.lang.Class in
+             * dvmLinkClass(), and Class has Object as its superclass.  So
+             * if the first thing we ever load is Object, we will init
+             * Object->Class->Object.  The easiest way to avoid this is to
+             * ensure that Object is never the first thing we look up, so
+             * we get Foo->Class->Object instead.
+             */
+            dvmLockObject(self, (Object*) clazz);
+            if (!dvmIsClassLinked(clazz) &&
+                clazz->initThreadId == self->threadId)
+            {
+                ALOGW("Recursive link on class %s", clazz->descriptor);
+                dvmUnlockObject(self, (Object*) clazz);
+                dvmThrowClassCircularityError(clazz->descriptor);
+                clazz = NULL;
+                goto bail;
+            }
+            //ALOGI("WAITING  for '%s' (owner=%d)",
+            //    clazz->descriptor, clazz->initThreadId);
+            while (!dvmIsClassLinked(clazz) && clazz->status != CLASS_ERROR) {
+                dvmObjectWait(self, (Object*) clazz, 0, 0, false);
+            }
+            dvmUnlockObject(self, (Object*) clazz);
+        }
+        if (clazz->status == CLASS_ERROR) {
+            /*
+             * Somebody else tried to load this and failed.  We need to raise
+             * an exception and report failure.
+             */
+            throwEarlierClassFailure(clazz);
+            clazz = NULL;
+            goto bail;
+        }
+    }
+
+    /* check some invariants */
+    assert(dvmIsClassLinked(clazz));
+    assert(gDvm.classJavaLangClass != NULL);
+    assert(clazz->clazz == gDvm.classJavaLangClass);
+    assert(dvmIsClassObject(clazz));
+    assert(clazz == gDvm.classJavaLangObject || clazz->super != NULL);
+    if (!dvmIsInterfaceClass(clazz)) {
+        //ALOGI("class=%s vtableCount=%d, virtualMeth=%d",
+        //    clazz->descriptor, clazz->vtableCount,
+        //    clazz->virtualMethodCount);
+        assert(clazz->vtableCount >= clazz->virtualMethodCount);
+    }
+
+    bail:
+    if (profilerNotified)
+        dvmMethodTraceClassPrepEnd();
+    assert(clazz != NULL || dvmCheckException(self));
+    return clazz;
+}
+
+ClassObject* dvmFindSystemClassNoInit(const char* descriptor)
+{
+    return findClassNoInit(descriptor, NULL, NULL);
+}
+
+ClassObject* dvmFindClassNoInit(const char* descriptor,
+                                Object* loader)
+{
+    assert(descriptor != NULL);
+    //assert(loader != NULL);
+
+    LOGVV("FindClassNoInit '%s' %p", descriptor, loader);
+
+    if (*descriptor == '[') {
+        /*
+         * Array class.  Find in table, generate if not found.
+         */
+        return dvmFindArrayClass(descriptor, loader);
+    } else {
+        /*
+         * Regular class.  Find in table, load if not found.
+         */
+        if (loader != NULL) {
+            return findClassFromLoaderNoInit(descriptor, loader);
+        } else {
+            return dvmFindSystemClassNoInit(descriptor);
+        }
+    }
+}
+
 static bool compareDescriptorClasses(const char* descriptor,
                                      const ClassObject* clazz1, const ClassObject* clazz2)
 {
