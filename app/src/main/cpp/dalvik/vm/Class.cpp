@@ -9,6 +9,7 @@
 #include "Exception.h"
 #include "ObjectInlines.h"
 #include "Misc.h"
+#include "Interp.h"
 static void throwEarlierClassFailure(ClassObject* clazz);
 static void throwEarlierClassFailure(ClassObject* clazz)
 {
@@ -20,6 +21,314 @@ static void throwEarlierClassFailure(ClassObject* clazz)
     } else {
         dvmThrowExceptionWithClassMessage(clazz->verifyErrorClass,
                                           clazz->descriptor);
+    }
+}
+static bool compareDescriptorClasses(const char* descriptor,
+                                     const ClassObject* clazz1, const ClassObject* clazz2)
+{
+    ClassObject* result1;
+    ClassObject* result2;
+
+    /*
+     * Do the first lookup by name.
+     */
+    result1 = dvmFindClassNoInit(descriptor, clazz1->classLoader);
+
+    /*
+     * We can skip a second lookup by name if the second class loader is
+     * in the initiating loader list of the class object we retrieved.
+     * (This means that somebody already did a lookup of this class through
+     * the second loader, and it resolved to the same class.)  If it's not
+     * there, we may simply not have had an opportunity to add it yet, so
+     * we do the full lookup.
+     *
+     * The initiating loader test should catch the majority of cases
+     * (in particular, the zillions of references to String/Object).
+     *
+     * Unfortunately we're still stuck grabbing a mutex to do the lookup.
+     *
+     * For this to work, the superclass/interface should be the first
+     * argument, so that way if it's from the bootstrap loader this test
+     * will work.  (The bootstrap loader, by definition, never shows up
+     * as the initiating loader of a class defined by some other loader.)
+     */
+    dvmHashTableLock(gDvm.loadedClasses);
+    bool isInit = dvmLoaderInInitiatingList(result1, clazz2->classLoader);
+    dvmHashTableUnlock(gDvm.loadedClasses);
+
+    if (isInit) {
+        //printf("%s(obj=%p) / %s(cl=%p): initiating\n",
+        //    result1->descriptor, result1,
+        //    clazz2->descriptor, clazz2->classLoader);
+        return true;
+    } else {
+        //printf("%s(obj=%p) / %s(cl=%p): RAW\n",
+        //    result1->descriptor, result1,
+        //    clazz2->descriptor, clazz2->classLoader);
+        result2 = dvmFindClassNoInit(descriptor, clazz2->classLoader);
+    }
+
+    if (result1 == NULL || result2 == NULL) {
+        dvmClearException(dvmThreadSelf());
+        if (result1 == result2) {
+            /*
+             * Neither class loader could find this class.  Apparently it
+             * doesn't exist.
+             *
+             * We can either throw some sort of exception now, or just
+             * assume that it'll fail later when something actually tries
+             * to use the class.  For strict handling we should throw now,
+             * because a "tricky" class loader could start returning
+             * something later, and a pair of "tricky" loaders could set
+             * us up for confusion.
+             *
+             * I'm not sure if we're allowed to complain about nonexistent
+             * classes in method signatures during class init, so for now
+             * this will just return "true" and let nature take its course.
+             */
+            return true;
+        } else {
+            /* only one was found, so clearly they're not the same */
+            return false;
+        }
+    }
+
+    return result1 == result2;
+}
+static bool checkMethodDescriptorClasses(const Method* meth,
+                                         const ClassObject* clazz1, const ClassObject* clazz2)
+{
+    DexParameterIterator iterator;
+    const char* descriptor;
+
+    /* walk through the list of parameters */
+    dexParameterIteratorInit(&iterator, &meth->prototype);
+    while (true) {
+        descriptor = dexParameterIteratorNextDescriptor(&iterator);
+
+        if (descriptor == NULL)
+            break;
+
+        if (descriptor[0] == 'L' || descriptor[0] == '[') {
+            /* non-primitive type */
+            if (!compareDescriptorClasses(descriptor, clazz1, clazz2))
+                return false;
+        }
+    }
+
+    /* check the return type */
+    descriptor = dexProtoGetReturnType(&meth->prototype);
+    if (descriptor[0] == 'L' || descriptor[0] == '[') {
+        if (!compareDescriptorClasses(descriptor, clazz1, clazz2))
+            return false;
+    }
+    return true;
+}
+
+static bool validateSuperDescriptors(const ClassObject* clazz)
+{
+    int i;
+
+    if (dvmIsInterfaceClass(clazz))
+        return true;
+
+    /*
+     * Start with the superclass-declared methods.
+     */
+    if (clazz->super != NULL &&
+        clazz->classLoader != clazz->super->classLoader)
+    {
+        /*
+         * Walk through every overridden method and compare resolved
+         * descriptor components.  We pull the Method structs out of
+         * the vtable.  It doesn't matter whether we get the struct from
+         * the parent or child, since we just need the UTF-8 descriptor,
+         * which must match.
+         *
+         * We need to do this even for the stuff inherited from Object,
+         * because it's possible that the new class loader has redefined
+         * a basic class like String.
+         *
+         * We don't need to check stuff defined in a superclass because
+         * it was checked when the superclass was loaded.
+         */
+        const Method* meth;
+
+        //printf("Checking %s %p vs %s %p\n",
+        //    clazz->descriptor, clazz->classLoader,
+        //    clazz->super->descriptor, clazz->super->classLoader);
+        for (i = clazz->super->vtableCount - 1; i >= 0; i--) {
+            meth = clazz->vtable[i];
+            if (meth != clazz->super->vtable[i] &&
+                !checkMethodDescriptorClasses(meth, clazz->super, clazz))
+            {
+                ALOGW("Method mismatch: %s in %s (cl=%p) and super %s (cl=%p)",
+                      meth->name, clazz->descriptor, clazz->classLoader,
+                      clazz->super->descriptor, clazz->super->classLoader);
+                dvmThrowLinkageError(
+                        "Classes resolve differently in superclass");
+                return false;
+            }
+        }
+    }
+
+    /*
+     * Check the methods defined by this class against the interfaces it
+     * implements.  If we inherited the implementation from a superclass,
+     * we have to check it against the superclass (which might be in a
+     * different class loader).  If the superclass also implements the
+     * interface, we could skip the check since by definition it was
+     * performed when the class was loaded.
+     */
+    for (i = 0; i < clazz->iftableCount; i++) {
+        const InterfaceEntry* iftable = &clazz->iftable[i];
+
+        if (clazz->classLoader != iftable->clazz->classLoader) {
+            const ClassObject* iface = iftable->clazz;
+            int j;
+
+            for (j = 0; j < iface->virtualMethodCount; j++) {
+                const Method* meth;
+                int vtableIndex;
+
+                vtableIndex = iftable->methodIndexArray[j];
+                meth = clazz->vtable[vtableIndex];
+
+                if (!checkMethodDescriptorClasses(meth, iface, meth->clazz)) {
+                    ALOGW("Method mismatch: %s in %s (cl=%p) and "
+                                  "iface %s (cl=%p)",
+                          meth->name, clazz->descriptor, clazz->classLoader,
+                          iface->descriptor, iface->classLoader);
+                    dvmThrowLinkageError(
+                            "Classes resolve differently in interface");
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+static void initSFields(ClassObject* clazz)
+{
+    Thread* self = dvmThreadSelf(); /* for dvmReleaseTrackedAlloc() */
+    DexFile* pDexFile;
+    const DexClassDef* pClassDef;
+    const DexEncodedArray* pValueList;
+    EncodedArrayIterator iterator;
+    int i;
+
+    if (clazz->sfieldCount == 0) {
+        return;
+    }
+    if (clazz->pDvmDex == NULL) {
+        /* generated class; any static fields should already be set up */
+        ALOGV("Not initializing static fields in %s", clazz->descriptor);
+        return;
+    }
+    pDexFile = clazz->pDvmDex->pDexFile;
+
+    pClassDef = dexFindClass(pDexFile, clazz->descriptor);
+    assert(pClassDef != NULL);
+
+    pValueList = dexGetStaticValuesList(pDexFile, pClassDef);
+    if (pValueList == NULL) {
+        return;
+    }
+
+    dvmEncodedArrayIteratorInitialize(&iterator, pValueList, clazz);
+
+    /*
+     * Iterate over the initial values array, setting the corresponding
+     * static field for each array element.
+     */
+
+    for (i = 0; dvmEncodedArrayIteratorHasNext(&iterator); i++) {
+        AnnotationValue value;
+        bool parsed = dvmEncodedArrayIteratorGetNext(&iterator, &value);
+        StaticField* sfield = &clazz->sfields[i];
+        const char* descriptor = sfield->signature;
+        bool isObj = false;
+
+        if (! parsed) {
+            /*
+             * TODO: Eventually verification should attempt to ensure
+             * that this can't happen at least due to a data integrity
+             * problem.
+             */
+            ALOGE("Static initializer parse failed for %s at index %d",
+                  clazz->descriptor, i);
+            dvmAbort();
+        }
+
+        /* Verify that the value we got was of a valid type. */
+
+        switch (descriptor[0]) {
+            case 'Z': parsed = (value.type == kDexAnnotationBoolean); break;
+            case 'B': parsed = (value.type == kDexAnnotationByte);    break;
+            case 'C': parsed = (value.type == kDexAnnotationChar);    break;
+            case 'S': parsed = (value.type == kDexAnnotationShort);   break;
+            case 'I': parsed = (value.type == kDexAnnotationInt);     break;
+            case 'J': parsed = (value.type == kDexAnnotationLong);    break;
+            case 'F': parsed = (value.type == kDexAnnotationFloat);   break;
+            case 'D': parsed = (value.type == kDexAnnotationDouble);  break;
+            case '[': parsed = (value.type == kDexAnnotationNull);    break;
+            case 'L': {
+                switch (value.type) {
+                    case kDexAnnotationNull: {
+                        /* No need for further tests. */
+                        break;
+                    }
+                    case kDexAnnotationString: {
+                        parsed =
+                                (strcmp(descriptor, "Ljava/lang/String;") == 0);
+                        isObj = true;
+                        break;
+                    }
+                    case kDexAnnotationType: {
+                        parsed =
+                                (strcmp(descriptor, "Ljava/lang/Class;") == 0);
+                        isObj = true;
+                        break;
+                    }
+                    default: {
+                        parsed = false;
+                        break;
+                    }
+                }
+                break;
+            }
+            default: {
+                parsed = false;
+                break;
+            }
+        }
+
+        if (parsed) {
+            /*
+             * All's well, so store the value.
+             */
+            if (isObj) {
+                dvmSetStaticFieldObject(sfield, (Object*)value.value.l);
+                dvmReleaseTrackedAlloc((Object*)value.value.l, self);
+            } else {
+                /*
+                 * Note: This always stores the full width of a
+                 * JValue, even though most of the time only the first
+                 * word is needed.
+                 */
+                sfield->value = value.value;
+            }
+        } else {
+            /*
+             * Something up above had a problem. TODO: See comment
+             * above the switch about verfication.
+             */
+            ALOGE("Bogus static initialization: value type %d in field type "
+                          "%s for %s at index %d",
+                  value.type, descriptor, clazz->descriptor, i);
+            dvmAbort();
+        }
     }
 }
 

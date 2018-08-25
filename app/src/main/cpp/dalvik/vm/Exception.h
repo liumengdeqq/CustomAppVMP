@@ -21,6 +21,7 @@
 #define DALVIK_EXCEPTION_H_
 
 #include "Thread.h"
+#include "Globals.h"
 void dvmThrowNullPointerException(JNIEnv* env, const char* msg);
 
 void dvmThrowArrayIndexOutOfBoundsException(JNIEnv* env, int length, int index);
@@ -54,4 +55,21 @@ INLINE void dvmThrowExceptionFmt(ClassObject* exceptionClass,
     dvmThrowExceptionFmtV(exceptionClass, fmt, args);
     va_end(args);
 }
+void dvmThrowNoClassDefFoundError(const char* descriptor) {
+    dvmThrowExceptionWithClassMessage(gDvm.exNoClassDefFoundError,
+                                      descriptor);
+}
+void dvmThrowVerifyError(const char* descriptor) {
+    dvmThrowExceptionWithClassMessage(gDvm.exVerifyError, descriptor);
+}
+INLINE Object* dvmGetException(Thread* self) {
+    return self->exception;
+}
+void dvmThrowExceptionInInitializerError(void);
+void dvmThrowUnsatisfiedLinkError(const char* msg);
+void dvmThrowUnsatisfiedLinkError(const char* msg, const Method* method);
+void dvmThrowLinkageError(const char* msg) {
+    dvmThrowException(gDvm.exLinkageError, msg);
+}
+
 #endif  // DALVIK_EXCEPTION_H_

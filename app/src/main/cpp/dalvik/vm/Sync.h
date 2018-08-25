@@ -22,5 +22,9 @@
 #define LW_HASH_STATE(x) (((x) >> LW_HASH_STATE_SHIFT) & LW_HASH_STATE_MASK)
 
 extern "C" void dvmLockObject(Thread* self, Object* obj);
-
+extern "C" bool dvmUnlockObject(Thread* self, Object* obj);
+void dvmObjectWait(Thread* self, Object* obj,
+                   s8 timeout, s4 nanos, bool interruptShouldThrow);
+void dvmObjectNotify(Thread* self, Object* obj);
+void dvmObjectNotifyAll(Thread* self, Object* obj);
 #endif //CUSTOMAPPVMP_SYNC_H
