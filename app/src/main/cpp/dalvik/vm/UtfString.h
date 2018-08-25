@@ -15,6 +15,9 @@
 # define STRING_FIELDOFF_OFFSET     16
 # define STRING_FIELDOFF_COUNT      20
 #endif
+
+int dvmHashcmpStrings(const void* vstrObj1, const void* vstrObj2);
 StringObject* dvmCreateStringFromCstrAndLength(const char* utf8Str,
                                                u4 utf16Length);
+u4 dvmComputeStringHash(StringObject* strObj);
 #endif //CUSTOMAPPVMP_UTFSTRING_H

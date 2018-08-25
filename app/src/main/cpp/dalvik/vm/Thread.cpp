@@ -153,3 +153,10 @@ ThreadStatus dvmChangeStatus(Thread* self, ThreadStatus newStatus)
 
     return oldStatus;
 }
+void dvmDumpThread(Thread* thread, bool isRunning)
+{
+    DebugOutputTarget target;
+
+    dvmCreateLogOutputTarget(&target, ANDROID_LOG_INFO, LOG_TAG);
+    dvmDumpThreadEx(&target, thread, isRunning);
+}

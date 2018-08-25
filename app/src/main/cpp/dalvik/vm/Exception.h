@@ -20,6 +20,7 @@
 #ifndef DALVIK_EXCEPTION_H_
 #define DALVIK_EXCEPTION_H_
 
+#include "Thread.h"
 void dvmThrowNullPointerException(JNIEnv* env, const char* msg);
 
 void dvmThrowArrayIndexOutOfBoundsException(JNIEnv* env, int length, int index);
@@ -33,5 +34,24 @@ INLINE void dvmThrowExceptionWithClassMessage(
     dvmThrowChainedExceptionWithClassMessage(exceptionClass,
                                              messageDescriptor, NULL);
 }
+INLINE bool dvmCheckException(Thread* self) {
+    return (self->exception != NULL);
+}
+void dvmThrowExceptionFmtV(ClassObject* exceptionClass,
+                           const char* fmt, va_list args);
+void dvmThrowExceptionFmt(ClassObject* exceptionClass,
+                          const char* fmt, ...)
+#if defined(__GNUC__)
+__attribute__ ((format(printf, 2, 3)))
+#endif
+;
 
+INLINE void dvmThrowExceptionFmt(ClassObject* exceptionClass,
+                                 const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    dvmThrowExceptionFmtV(exceptionClass, fmt, args);
+    va_end(args);
+}
 #endif  // DALVIK_EXCEPTION_H_

@@ -575,4 +575,27 @@ INLINE u4 dvmGetMethodInsnsSize(const Method* meth) {
 INLINE bool dvmIsStaticMethod(const Method* method) {
     return (method->accessFlags & ACC_STATIC) != 0;
 }
+INLINE bool dvmIsInterfaceClass(const ClassObject* clazz) {
+    return (clazz->accessFlags & ACC_INTERFACE) != 0;
+}
+INLINE bool dvmIsPublicClass(const ClassObject* clazz) {
+    return (clazz->accessFlags & ACC_PUBLIC) != 0;
+}
+INLINE bool dvmIsFinalClass(const ClassObject* clazz) {
+    return (clazz->accessFlags & ACC_FINAL) != 0;
+}
+INLINE bool dvmIsAbstractClass(const ClassObject* clazz) {
+    return (clazz->accessFlags & ACC_ABSTRACT) != 0;
+}
+INLINE bool dvmIsAnnotationClass(const ClassObject* clazz) {
+    return (clazz->accessFlags & ACC_ANNOTATION) != 0;
+}
+INLINE bool dvmIsPrimitiveClass(const ClassObject* clazz) {
+    return clazz->primitiveType != PRIM_NOT;
+}
+INLINE bool dvmIsTheClassClass(const ClassObject* clazz) {
+    assert(clazz != NULL);
+    return IS_CLASS_FLAG_SET(clazz, CLASS_ISCLASS);
+}
+
 #endif //DUMPDEX_OBJECT_H_H

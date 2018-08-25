@@ -79,3 +79,45 @@ StringObject* dvmCreateStringFromCstrAndLength(const char* utf8Str,
 
     return newObj;
 }
+int dvmHashcmpStrings(const void* vstrObj1, const void* vstrObj2)
+{
+    const StringObject* strObj1 = (const StringObject*) vstrObj1;
+    const StringObject* strObj2 = (const StringObject*) vstrObj2;
+
+    assert(gDvm.classJavaLangString != NULL);
+
+    /* get offset and length into char array; all values are in 16-bit units */
+    int len1 = dvmGetFieldInt(strObj1, STRING_FIELDOFF_COUNT);
+    int offset1 = dvmGetFieldInt(strObj1, STRING_FIELDOFF_OFFSET);
+    int len2 = dvmGetFieldInt(strObj2, STRING_FIELDOFF_COUNT);
+    int offset2 = dvmGetFieldInt(strObj2, STRING_FIELDOFF_OFFSET);
+    if (len1 != len2) {
+        return len1 - len2;
+    }
+
+    ArrayObject* chars1 =
+            (ArrayObject*) dvmGetFieldObject(strObj1, STRING_FIELDOFF_VALUE);
+    ArrayObject* chars2 =
+            (ArrayObject*) dvmGetFieldObject(strObj2, STRING_FIELDOFF_VALUE);
+
+    /* damage here actually indicates a broken java/lang/String */
+    assert(offset1 + len1 <= (int) chars1->length);
+    assert(offset2 + len2 <= (int) chars2->length);
+
+    return memcmp((const u2*)(void*)chars1->contents + offset1,
+                  (const u2*)(void*)chars2->contents + offset2,
+                  len1 * sizeof(u2));
+}
+u4 dvmComputeStringHash(StringObject* strObj) {
+    int hashCode = dvmGetFieldInt(strObj, STRING_FIELDOFF_HASHCODE);
+    if (hashCode != 0) {
+        return hashCode;
+    }
+    int len = dvmGetFieldInt(strObj, STRING_FIELDOFF_COUNT);
+    int offset = dvmGetFieldInt(strObj, STRING_FIELDOFF_OFFSET);
+    ArrayObject* chars =
+            (ArrayObject*) dvmGetFieldObject(strObj, STRING_FIELDOFF_VALUE);
+    hashCode = computeUtf16Hash((u2*)(void*)chars->contents + offset, len);
+    dvmSetFieldInt(strObj, STRING_FIELDOFF_HASHCODE, hashCode);
+    return hashCode;
+}

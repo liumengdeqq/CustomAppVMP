@@ -308,5 +308,5 @@ INLINE void dvmUnlockMutex(pthread_mutex_t* pMutex)
     int cc __attribute__ ((__unused__)) = pthread_mutex_unlock(pMutex);
     assert(cc == 0);
 }
-
+void dvmDumpThread(Thread* thread, bool isRunning);
 #endif //CUSTOMAPPVMP_THREAD_H

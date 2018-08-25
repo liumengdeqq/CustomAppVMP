@@ -47,4 +47,10 @@ INLINE struct StringObject* dvmDexGetResolvedString(const DvmDex* pDvmDex,
     assert(stringIdx < pDvmDex->pHeader->stringIdsSize);
     return pDvmDex->pResStrings[stringIdx];
 }
+INLINE void dvmDexSetResolvedString(DvmDex* pDvmDex, u4 stringIdx,
+                                    struct StringObject* str)
+{
+    assert(stringIdx < pDvmDex->pHeader->stringIdsSize);
+    pDvmDex->pResStrings[stringIdx] = str;
+}
 #endif //DUMPDEX_DVMDEX_H

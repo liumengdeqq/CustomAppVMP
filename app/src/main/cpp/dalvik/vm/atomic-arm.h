@@ -58,5 +58,11 @@ void android_atomic_acquire_store(int32_t value, volatile int32_t *ptr)
     *ptr = value;
     android_memory_barrier();
 }
-
+extern ANDROID_ATOMIC_INLINE
+int32_t android_atomic_acquire_load(volatile const int32_t *ptr)
+{
+    int32_t value = *ptr;
+    android_memory_barrier();
+    return value;
+}
 #endif //CUSTOMAPPVMP_ATOMIC_ARM_H

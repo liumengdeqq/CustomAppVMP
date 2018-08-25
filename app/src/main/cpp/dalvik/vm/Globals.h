@@ -14,6 +14,7 @@
 #include "BitVector.h"
 #include "HeapInternal.h"
 #include "AllocTracker.h"
+#include "AtomicCache.h"
 #define _AVMP_DEBUG_
 
 #include "Profile.h"
@@ -571,7 +572,7 @@ struct DvmGlobals {
     /*
      * Cache results of "A instanceof B".
      */
-//    AtomicCache* instanceofCache;
+    AtomicCache* instanceofCache;
 
     /* inline substitution table, used during optimization */
 //    InlineSub*          inlineSubs;

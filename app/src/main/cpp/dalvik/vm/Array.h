@@ -6,8 +6,14 @@
 #include "ObjectInlines.h"
 #include "Heap.h"
 #include "AllocTracker.h"
+#include "Exception.h"
+#include <jni.h>
 #ifndef CUSTOMAPPVMP_ARRAY_H
 #define CUSTOMAPPVMP_ARRAY_H
+INLINE bool dvmIsArrayClass(const ClassObject* clazz)
+{
+    return (clazz->descriptor[0] == '[');
+}
 static ArrayObject* allocArray(ClassObject* arrayClass, size_t length,
                                size_t elemWidth, int allocFlags)
 {
@@ -23,9 +29,9 @@ static ArrayObject* allocArray(ClassObject* arrayClass, size_t length,
     size_t headerSize = OFFSETOF_MEMBER(ArrayObject, contents);
     size_t totalSize = elementSize + headerSize;
     if (elementSize >> elementShift != length || totalSize < elementSize) {
-        std::string descriptor(dvmHumanReadableDescriptor(arrayClass->descriptor));
+//        std::string descriptor(dvmHumanReadableDescriptor(arrayClass->descriptor));
         dvmThrowExceptionFmt(gDvm.exOutOfMemoryError,
-                             "%s of length %zd exceeds the VM limit", descriptor.c_str(), length);
+                             "%s of length %zd exceeds the VM limit", "", length);
         return NULL;
     }
     ArrayObject* newArray = (ArrayObject*)dvmMalloc(totalSize, allocFlags);
@@ -87,5 +93,44 @@ ArrayObject* dvmAllocPrimitiveArray(char type, size_t length, int allocFlags)
     /* the caller must dvmReleaseTrackedAlloc if allocFlags==ALLOC_DEFAULT */
     return newArray;
 }
+INLINE bool dvmIsObjectArrayClass(const ClassObject* clazz)
+{
+    const char* descriptor = clazz->descriptor;
+    return descriptor[0] == '[' && (descriptor[1] == 'L' ||
+                                    descriptor[1] == '[');
+}
 
+size_t dvmArrayClassElementWidth(const ClassObject* arrayClass)
+{
+    const char *descriptor;
+
+    assert(dvmIsArrayClass(arrayClass));
+
+    if (dvmIsObjectArrayClass(arrayClass)) {
+        return sizeof(Object *);
+    } else {
+        descriptor = arrayClass->descriptor;
+        switch (descriptor[1]) {
+            case 'B': return 1;  /* byte */
+            case 'C': return 2;  /* char */
+            case 'D': return 8;  /* double */
+            case 'F': return 4;  /* float */
+            case 'I': return 4;  /* int */
+            case 'J': return 8;  /* long */
+            case 'S': return 2;  /* short */
+            case 'Z': return 1;  /* boolean */
+        }
+    }
+    ALOGE("class %p has an unhandled descriptor '%s'", arrayClass, descriptor);
+    dvmDumpThread(dvmThreadSelf(), false);
+    dvmAbort();
+    return 0;  /* Quiet the compiler. */
+}
+size_t dvmArrayObjectSize(const ArrayObject *array)
+{
+    assert(array != NULL);
+    size_t size = OFFSETOF_MEMBER(ArrayObject, contents);
+    size += array->length * dvmArrayClassElementWidth(array->clazz);
+    return size;
+}
 #endif //CUSTOMAPPVMP_ARRAY_H

@@ -240,5 +240,26 @@ void* dvmMalloc(size_t size, int flags)
 
     return ptr;
 }
-
+bool dvmIsValidObject(const Object* obj)
+{
+    /* Don't bother if it's NULL or not 8-byte aligned.
+     */
+    if (obj != NULL && ((uintptr_t)obj & (8-1)) == 0) {
+        /* Even if the heap isn't locked, this shouldn't return
+         * any false negatives.  The only mutation that could
+         * be happening is allocation, which means that another
+         * thread could be in the middle of a read-modify-write
+         * to add a new bit for a new object.  However, that
+         * RMW will have completed by the time any other thread
+         * could possibly see the new pointer, so there is no
+         * danger of dvmIsValidObject() being called on a valid
+         * pointer whose bit isn't set.
+         *
+         * Freeing will only happen during the sweep phase, which
+         * only happens while the heap is locked.
+         */
+        return dvmHeapSourceContains(obj);
+    }
+    return false;
+}
 #endif //CUSTOMAPPVMP_HEAP_H

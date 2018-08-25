@@ -4,6 +4,10 @@
 #include "Resolve.h"
 #include "DexFile.h"
 #include "UtfString.h"
+#include "Thread.h"
+#include "Alloc.h"
+#include "Intern.h"
+#include "Exception.h"
 StringObject* dvmResolveString(const ClassObject* referrer, u4 stringIdx)
 {
     DvmDex* pDvmDex = referrer->pDvmDex;

@@ -17,4 +17,10 @@ INLINE void dvmSetFieldObject(Object* obj, int offset, Object* val) {
         dvmWriteBarrierField(obj, &lhs->l);
     }
 }
+INLINE Object* dvmGetFieldObject(const Object* obj, int offset) {
+    return ((JValue*)BYTE_OFFSET(obj, offset))->l;
+}
+INLINE s4 dvmGetFieldInt(const Object* obj, int offset) {
+    return ((JValue*)BYTE_OFFSET(obj, offset))->i;
+}
 #endif //CUSTOMAPPVMP_OBJECTINLINES_H
