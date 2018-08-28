@@ -22,9 +22,9 @@
  */
 
 /* common includes */
-#include "../Dalvik.h"
-#include "../interp/InterpDefs.h"
-#include "../mterp/Mterp.h"
+#include "Dalvik.h"
+#include "InterpDefs.h"
+#include "Mterp.h"
 #include <math.h>                   // needed for fmod, fmodf
 #include "FindInterface.h"
 

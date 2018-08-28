@@ -14,4 +14,4 @@
 #include "Object.h"
 #include "Exception.h"
 
-#include "log.h"
+#include "customlog.h"

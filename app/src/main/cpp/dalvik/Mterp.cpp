@@ -2,8 +2,8 @@
 // Created by liu meng on 2018/8/27.
 //
 
-#include "../Dalvik.h"
-#include "../mterp/Mterp.h"
+#include "Dalvik.h"
+#include "Mterp.h"
 
 #include <stddef.h>
 

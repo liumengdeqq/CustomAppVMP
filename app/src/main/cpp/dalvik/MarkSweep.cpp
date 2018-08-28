@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#include "../Dalvik.h"
-#include "../alloc/CardTable.h"
-#include "../alloc/HeapBitmap.h"
-#include "../alloc/HeapBitmapInlines.h"
-#include "../alloc/HeapInternal.h"
-#include "../alloc/HeapSource.h"
-#include "../alloc/MarkSweep.h"
-#include "../alloc/Visit.h"
+#include "Dalvik.h"
+#include "CardTable.h"
+#include "HeapBitmap.h"
+#include "HeapBitmapInlines.h"
+#include "HeapInternal.h"
+#include "HeapSource.h"
+#include "MarkSweep.h"
+#include "Visit.h"
 #include <limits.h>     // for ULONG_MAX
 #include <sys/mman.h>   // for madvise(), mmap()
 #include <errno.h>

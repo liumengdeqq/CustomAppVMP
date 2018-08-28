@@ -19,7 +19,7 @@
  */
 
 #include "Dalvik.h"
-#include "../libdex/OptInvocation.h"
+#include "OptInvocation.h"
 
 #include <fcntl.h>
 #include <sys/stat.h>

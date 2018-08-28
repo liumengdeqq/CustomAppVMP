@@ -24,7 +24,7 @@
 #ifndef DALVIK_INTERP_STATE_H_
 #define DALVIK_INTERP_STATE_H_
 
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /*
  * For x86 JIT. In the lowered code sequences for bytecodes, at most 10
  * temporary variables may be live at the same time. Therefore, at most

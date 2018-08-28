@@ -19,7 +19,7 @@
  *
  * See the majestic ASCII art in Stack.h.
  */
-#include "../Dalvik.h"
+#include "Dalvik.h"
 #include "jni.h"
 
 #include <stdlib.h>

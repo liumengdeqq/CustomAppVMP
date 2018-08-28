@@ -18,7 +18,7 @@
  * Perform some simple bytecode optimizations, chiefly "quickening" of
  * opcodes.
  */
-#include "../../libdex/InstrUtils.h"
+#include "InstrUtils.h"
 #include "Optimize.h"
 
 #include <zlib.h>

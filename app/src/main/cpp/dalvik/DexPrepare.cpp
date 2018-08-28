@@ -25,9 +25,9 @@
  * more rigorously structured.
  */
 #include "DexPrepare.h"
-#include "../../libdex/OptInvocation.h"
-#include "../analysis/RegisterMap.h"
-#include "../analysis/Optimize.h"
+#include "OptInvocation.h"
+#include "RegisterMap.h"
+#include "Optimize.h"
 
 #include <string>
 

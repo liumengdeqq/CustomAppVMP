@@ -24,15 +24,15 @@
  * bad territory, and have a single "is dataLen correct" check at the
  * end of each function.  Not needed at this time.
  */
-#include "../jdwp/JdwpPriv.h"
-#include "../jdwp/JdwpHandler.h"
-#include "../jdwp/JdwpEvent.h"
-#include "../jdwp/JdwpConstants.h"
-#include "../jdwp/ExpandBuf.h"
+#include "JdwpPriv.h"
+#include "JdwpHandler.h"
+#include "JdwpEvent.h"
+#include "JdwpConstants.h"
+#include "ExpandBuf.h"
 
-#include "../Bits.h"
-#include "../Atomic.h"
-#include "../DalvikVersion.h"
+#include "Bits.h"
+#include "Atomic.h"
+#include "DalvikVersion.h"
 
 #include <stdlib.h>
 #include <string.h>

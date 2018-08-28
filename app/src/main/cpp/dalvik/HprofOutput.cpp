@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 #include <sys/time.h>
-#include "../../cutils/open_memstream.h"
+#include "open_memstream.h"
 #include <time.h>
 #include <errno.h>
 #include "Hprof.h"

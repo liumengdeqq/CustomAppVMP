@@ -17,9 +17,9 @@
  * Implementation of an expandable byte buffer.  Designed for serializing
  * primitive values, e.g. JDWP replies.
  */
-#include "../jdwp/ExpandBuf.h"
-#include "../Bits.h"
-#include "../Common.h"
+#include "ExpandBuf.h"
+#include "Bits.h"
+#include "Common.h"
 
 #include <stdlib.h>
 #include <string.h>

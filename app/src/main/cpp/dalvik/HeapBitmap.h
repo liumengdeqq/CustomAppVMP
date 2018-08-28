@@ -18,7 +18,7 @@
 
 #include <limits.h>
 #include <stdint.h>
-#include "../Dalvik.h"
+#include "Dalvik.h"
 #define HB_OBJECT_ALIGNMENT 8
 #define HB_BITS_PER_WORD (sizeof(unsigned long) * CHAR_BIT)
 

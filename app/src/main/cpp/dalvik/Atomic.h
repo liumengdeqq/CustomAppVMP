@@ -20,8 +20,8 @@
 #ifndef DALVIK_ATOMIC_H_
 #define DALVIK_ATOMIC_H_
 
-#include "../cutils/atomic-arm.h"          /* use common Android atomic ops */
-#include "../cutils/atomic-inline.h"   /* and some uncommon ones */
+#include "atomic-arm.h"          /* use common Android atomic ops */
+#include "atomic-inline.h"   /* and some uncommon ones */
 
 void dvmQuasiAtomicsStartup();
 void dvmQuasiAtomicsShutdown();

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include "../Dalvik.h"
-#include "../alloc/HeapInternal.h"
-#include "../alloc/Visit.h"
-#include "../alloc/VisitInlines.h"
+#include "Dalvik.h"
+#include "HeapInternal.h"
+#include "Visit.h"
+#include "VisitInlines.h"
 
 /*
  * Visits all of the reference locations in an object.

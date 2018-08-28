@@ -19,7 +19,7 @@
  */
 #ifndef DALVIK_DEXPREPARE_H_
 #define DALVIK_DEXPREPARE_H_
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /*
  * Global DEX optimizer control.  Determines the circumstances in which we
  * try to rewrite instructions in the DEX file.

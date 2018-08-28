@@ -21,8 +21,8 @@
 #ifndef DALVIK_VFYBASICBLOCK_H_
 #define DALVIK_VFYBASICBLOCK_H_
 
-#include "../PointerSet.h"
-#include "../Dalvik.h"
+#include "PointerSet.h"
+#include "Dalvik.h"
 struct VerifierData;
 
 

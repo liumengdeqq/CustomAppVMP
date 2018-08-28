@@ -16,8 +16,8 @@
 #ifndef DALVIK_ALLOC_MARK_SWEEP_H_
 #define DALVIK_ALLOC_MARK_SWEEP_H_
 
-#include "../alloc/HeapBitmap.h"
-#include "../alloc/HeapSource.h"
+#include "HeapBitmap.h"
+#include "HeapSource.h"
 
 struct GcMarkStack {
     /* Highest address (exclusive)

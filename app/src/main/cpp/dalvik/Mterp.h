@@ -8,8 +8,8 @@
 #ifndef DALVIK_MTERP_MTERP_H_
 #define DALVIK_MTERP_MTERP_H_
 
-#include "../Dalvik.h"
-#include "../interp/InterpDefs.h"
+#include "Dalvik.h"
+#include "InterpDefs.h"
 #if defined(WITH_JIT)
 #include "interp/Jit.h"
 #endif

@@ -17,7 +17,7 @@
 #ifndef DALVIK_ALLOC_VISITINLINES_H_
 #define DALVIK_ALLOC_VISITINLINES_H_
 
-#include "../Dalvik.h"
+#include "Dalvik.h"
 #include "Visit.h"
 /*
  * Visits the instance fields of a class or data object.

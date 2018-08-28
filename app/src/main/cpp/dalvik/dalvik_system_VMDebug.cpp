@@ -17,10 +17,10 @@
 /*
  * dalvik.system.VMDebug
  */
-#include "../Dalvik.h"
-#include "../alloc/HeapSource.h"
-#include "../native/InternalNativePriv.h"
-#include "../hprof/Hprof.h"
+#include "Dalvik.h"
+#include "HeapSource.h"
+#include "InternalNativePriv.h"
+#include "Hprof.h"
 
 #include <string.h>
 #include <unistd.h>

@@ -16,7 +16,7 @@
 
 #include "os.h"
 
-#include "../Dalvik.h"
+#include "Dalvik.h"
 
 int os_raiseThreadPriority()
 {

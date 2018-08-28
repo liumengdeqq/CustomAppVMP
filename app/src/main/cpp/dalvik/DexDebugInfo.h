@@ -22,7 +22,7 @@
 #define LIBDEX_DEXDEBUGINFO_H_
 
 #include "DexFile.h"
-
+#include "Dalvik.h"
 /*
  * Callback for "new position table entry".
  * Returning non-0 causes the decoder to stop early.

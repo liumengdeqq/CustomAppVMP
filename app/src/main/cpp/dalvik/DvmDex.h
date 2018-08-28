@@ -22,7 +22,7 @@
 #define DALVIK_DVMDEX_H_
 
 #include "jni.h"
-#include "../libdex/DexFile.h"
+#include "DexFile.h"
 
 /* extern */
 struct ClassObject;

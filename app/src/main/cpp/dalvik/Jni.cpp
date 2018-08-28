@@ -20,8 +20,8 @@
 #include "Dalvik.h"
 #include "JniInternal.h"
 #include "Misc.h"
-#include "../ScopedPthreadMutexLock.h"
-#include "../utils/UniquePtr.h"
+#include "ScopedPthreadMutexLock.h"
+#include "UniquePtr.h"
 
 #include <stdlib.h>
 #include <stdarg.h>

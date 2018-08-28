@@ -17,8 +17,8 @@
 /*
  * sun.misc.Unsafe
  */
-#include "../Dalvik.h"
-#include "../native/InternalNativePriv.h"
+#include "Dalvik.h"
+#include "InternalNativePriv.h"
 
 
 /*

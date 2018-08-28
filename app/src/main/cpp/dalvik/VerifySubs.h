@@ -19,7 +19,7 @@
  */
 #ifndef DALVIK_VERIFYSUBS_H_
 #define DALVIK_VERIFYSUBS_H_
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /*
  * InsnFlags is a 32-bit integer with the following layout:
  *   0-15  instruction length (or 0 if this address doesn't hold an opcode)

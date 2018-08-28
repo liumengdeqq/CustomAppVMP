@@ -33,8 +33,8 @@
 #ifndef LIBDEX_DEXFILE_H_
 #define LIBDEX_DEXFILE_H_
 
-#include "../vm/Common.h"      // basic type defs, e.g. u1/u2/u4/u8, and LOG
-#include "../libdex/SysUtil.h"
+#include "Common.h"      // basic type defs, e.g. u1/u2/u4/u8, and LOG
+#include "SysUtil.h"
 
 /*
  * gcc-style inline management -- ensures we have a copy of all functions

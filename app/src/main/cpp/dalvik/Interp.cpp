@@ -24,9 +24,9 @@
  * Some debugger support functions are included here.
  */
 
-#include "../interp/InterpDefs.h"
-#include "../../cutils/atomic-arm.h"
-#include "../../cutils/atomic-inline.h"
+#include "InterpDefs.h"
+#include "atomic-arm.h"
+#include "atomic-inline.h"
 #include "interp.h"
 #if defined(WITH_JIT)
 #include "interp/Jit.h"

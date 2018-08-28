@@ -20,8 +20,8 @@
 #ifndef DALVIK_OO_OBJECTINLINES_H_
 #define DALVIK_OO_OBJECTINLINES_H_
 
-#include "../Dalvik.h"
-#include "../../cutils/atomic-inline.h"
+#include "Dalvik.h"
+#include "atomic-inline.h"
 /*
  * Store a single value in the array, and if the value isn't null,
  * note in the write barrier.

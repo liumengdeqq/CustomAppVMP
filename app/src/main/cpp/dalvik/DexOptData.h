@@ -22,7 +22,7 @@
 #ifndef _LIBDEX_DEXOPTDATA
 #define _LIBDEX_DEXOPTDATA
 
-#include "../libdex/DexFile.h"
+#include "DexFile.h"
 
 /*
  * Parse the optimized data tables in the given dex file.

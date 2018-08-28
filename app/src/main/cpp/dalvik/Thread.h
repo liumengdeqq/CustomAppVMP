@@ -21,10 +21,10 @@
 #define DALVIK_THREAD_H_
 
 #include <jni.h>
-#include "interp/InterpState.h"
+#include "InterpState.h"
 
 #include <errno.h>
-#include "../cutils/sched_policy.h"
+#include "sched_policy.h"
 #if defined(CHECK_MUTEX) && !defined(__USE_UNIX98)
 /* glibc lacks this unless you #define __USE_UNIX98 */
 int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type);

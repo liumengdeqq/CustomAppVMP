@@ -19,7 +19,7 @@
  */
 #ifndef DALVIK_INTERP_INTERP_H_
 #define DALVIK_INTERP_INTERP_H_
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /*
  * Stash the dalvik PC in the frame.  Called  during interpretation.
  */

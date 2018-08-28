@@ -22,8 +22,8 @@
 #ifndef DALVIK_REGISTERMAP_H_
 #define DALVIK_REGISTERMAP_H_
 
-#include "../analysis/VerifySubs.h"
-#include "../analysis/CodeVerify.h"
+#include "VerifySubs.h"
+#include "CodeVerify.h"
 
 /*
  * Format enumeration for RegisterMap data area.

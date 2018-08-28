@@ -16,7 +16,7 @@
 #ifndef DALVIK_HPROF_HPROF_H_
 #define DALVIK_HPROF_HPROF_H_
 
-#include "../Dalvik.h"
+#include "Dalvik.h"
 
 #define HPROF_ID_SIZE (sizeof (u4))
 

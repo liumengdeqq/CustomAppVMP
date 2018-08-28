@@ -17,10 +17,10 @@
 #include <sys/mman.h>  /* for PROT_* */
 
 #include "CardTable.h"
-#include "../alloc/HeapBitmap.h"
-#include "../alloc/HeapBitmapInlines.h"
-#include "../alloc/HeapSource.h"
-#include "../alloc/Visit.h"
+#include "HeapBitmap.h"
+#include "HeapBitmapInlines.h"
+#include "HeapSource.h"
+#include "Visit.h"
 
 /*
  * Maintain a card table from the the write barrier. All writes of

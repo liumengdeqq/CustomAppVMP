@@ -17,16 +17,16 @@
 /*
  * JDWP initialization.
  */
-#include "../jdwp/JdwpPriv.h"
-#include "../Dalvik.h"
-#include "../Atomic.h"
+#include "JdwpPriv.h"
+#include "Dalvik.h"
+#include "Atomic.h"
 
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/time.h>
 #include <time.h>
 #include <errno.h>
-#include "../../cutils/atomic-arm.h"
+#include "atomic-arm.h"
 
 static void* jdwpThreadStart(void* arg);
 

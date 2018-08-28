@@ -18,11 +18,11 @@
  * Verifier basic block functions.
  */
 
-#include "../analysis/VfyBasicBlock.h"
-#include "../analysis/CodeVerify.h"
-#include "../analysis/VerifySubs.h"
-#include "../../libdex/DexCatch.h"
-#include "../../libdex/InstrUtils.h"
+#include "VfyBasicBlock.h"
+#include "CodeVerify.h"
+#include "VerifySubs.h"
+#include "DexCatch.h"
+#include "InstrUtils.h"
 
 
 /*

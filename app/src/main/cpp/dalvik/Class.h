@@ -18,8 +18,8 @@
  */
 #ifndef DALVIK_OO_CLASS_H_
 #define DALVIK_OO_CLASS_H_
-#include "../Dalvik.h"
-#include "../../libdex/DexClass.h"
+#include "Dalvik.h"
+#include "DexClass.h"
 
 /*
  * The classpath and bootclasspath differ in that only the latter is

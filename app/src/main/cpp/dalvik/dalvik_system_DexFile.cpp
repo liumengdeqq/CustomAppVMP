@@ -17,8 +17,8 @@
 /*
  * dalvik.system.DexFile
  */
-#include "../Dalvik.h"
-#include "../native/InternalNativePriv.h"
+#include "Dalvik.h"
+#include "InternalNativePriv.h"
 
 /*
  * Return true if the given name ends with ".dex".

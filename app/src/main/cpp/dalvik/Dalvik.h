@@ -83,5 +83,7 @@
 #include "Interp.h"
 #include "InlineNative.h"
 #include "ObjectInlines.h"
-
+#include "customlog.h"
+#include "atomic-inline.h"
+#include "FindInterface.h"
 #endif  // DALVIK_DALVIK_H_

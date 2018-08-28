@@ -22,7 +22,7 @@
 #include <zlib.h>
 
 #include "DexOptData.h"
-
+#include "Dalvik.h"
 /*
  * Check to see if a given data pointer is a valid double-word-aligned
  * pointer into the given memory range (from start inclusive to end

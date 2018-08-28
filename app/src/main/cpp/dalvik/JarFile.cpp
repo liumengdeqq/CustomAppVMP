@@ -23,7 +23,7 @@
  */
 
 #include "Dalvik.h"
-#include "../libdex/OptInvocation.h"
+#include "OptInvocation.h"
 
 #include <stdlib.h>
 #include <string.h>

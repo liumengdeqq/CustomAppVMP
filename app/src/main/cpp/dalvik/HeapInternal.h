@@ -20,7 +20,7 @@
 #define DALVIK_ALLOC_HEAP_INTERNAL_H_
 
 #include "MarkSweep.h"
-#include "../Dalvik.h"
+#include "Dalvik.h"
 struct HeapSource;
 
 struct GcHeap {

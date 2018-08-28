@@ -19,7 +19,7 @@
 #ifndef DALVIK_ALLOC_HEAP_H_
 #define DALVIK_ALLOC_HEAP_H_
 
-#include "../Dalvik.h"
+#include "Dalvik.h"
 struct GcSpec {
   /* If true, only the application heap is threatened. */
   bool isPartial;

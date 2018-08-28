@@ -17,7 +17,7 @@
 #ifndef DALVIK_NATIVE_INTERNALNATIVE_H_
 #define DALVIK_NATIVE_INTERNALNATIVE_H_
 
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /*
  * Some setup for internal native functions.
  */

@@ -20,9 +20,9 @@
 #ifndef DALVIK_CODEVERIFY_H_
 #define DALVIK_CODEVERIFY_H_
 
-#include "../analysis/VerifySubs.h"
-#include "../analysis/VfyBasicBlock.h"
-#include "../Dalvik.h"
+#include "VerifySubs.h"
+#include "VfyBasicBlock.h"
+#include "Dalvik.h"
 /*
  * Enumeration for register type values.  The "hi" piece of a 64-bit value
  * MUST immediately follow the "lo" piece in the enumeration, so we can check

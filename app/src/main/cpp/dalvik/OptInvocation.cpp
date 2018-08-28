@@ -18,7 +18,7 @@
  * Utility functions for dealing with optimized dex files.
  */
 
-#include "../vm/DalvikVersion.h"
+#include "DalvikVersion.h"
 
 #include <stdint.h>
 #include <stdlib.h>

@@ -2,8 +2,8 @@
 // Created by liu meng on 2018/8/27.
 //
 
-#include "../Dalvik.h"
-#include "../interp/interpDefs.h"
+#include "Dalvik.h"
+#include "interpDefs.h"
 extern "C" {
 
 /*

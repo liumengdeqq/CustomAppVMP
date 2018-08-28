@@ -16,9 +16,9 @@
 /*
  * JDWP TCP socket network code.
  */
-#include "../jdwp/JdwpPriv.h"
-#include "../jdwp/JdwpHandler.h"
-#include "../Bits.h"
+#include "JdwpPriv.h"
+#include "JdwpHandler.h"
+#include "Bits.h"
 
 #include <stdlib.h>
 #include <unistd.h>

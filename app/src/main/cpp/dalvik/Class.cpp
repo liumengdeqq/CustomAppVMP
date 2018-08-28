@@ -22,8 +22,8 @@
 #define LOG_CLASS_LOADING 0
 
 #include "Class.h"
-#include "../../libdex/DexClass.h"
-#include "../analysis/Optimize.h"
+#include "DexClass.h"
+#include "Optimize.h"
 
 #include <stdlib.h>
 #include <stddef.h>

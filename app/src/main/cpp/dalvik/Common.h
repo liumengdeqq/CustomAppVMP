@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
-#include "../cutils/customlog.h"
+#include "customlog.h"
 
 #if defined(HAVE_ENDIAN_H)
 # include <endian.h>

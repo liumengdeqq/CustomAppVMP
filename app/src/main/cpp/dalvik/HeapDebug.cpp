@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "../Dalvik.h"
+#include "Dalvik.h"
 #include "HeapSource.h"
 
 int dvmGetHeapDebugInfo(HeapDebugInfoType info)

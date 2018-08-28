@@ -17,9 +17,9 @@
 /*
  * Liveness analysis for Dalvik bytecode.
  */
-#include "../Dalvik.h"
-#include "../analysis/Liveness.h"
-#include "../analysis/CodeVerify.h"
+#include "Dalvik.h"
+#include "Liveness.h"
+#include "CodeVerify.h"
 
 static bool processInstruction(VerifierData* vdata, u4 curIdx,
     BitVector* workBits);

@@ -29,7 +29,7 @@
 #define USE_ASHMEM 1
 
 #ifdef USE_ASHMEM
-#include "../cutils/ashmem.h"
+#include "ashmem.h"
 #endif /* USE_ASHMEM */
 
 /*

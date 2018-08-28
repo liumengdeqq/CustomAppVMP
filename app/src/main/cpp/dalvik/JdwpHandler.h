@@ -19,7 +19,7 @@
 #ifndef DALVIK_JDWP_JDWPHANDLER_H_
 #define DALVIK_JDWP_JDWPHANDLER_H_
 
-#include "../Common.h"
+#include "Common.h"
 #include "ExpandBuf.h"
 
 /*

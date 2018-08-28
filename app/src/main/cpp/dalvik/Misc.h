@@ -29,7 +29,7 @@
 
 #include "Inlines.h"
 #include "Dalvik.h"
-#include "../cutils/atomic-arm.h"
+#include "atomic-arm.h"
 /*
  * Used to shut up the compiler when a parameter isn't used.
  */

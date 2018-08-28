@@ -20,7 +20,7 @@
 #ifndef DALVIK_NATIVE_INTERNALNATIVEPRIV_H_
 #define DALVIK_NATIVE_INTERNALNATIVEPRIV_H_
 
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /*
  * Return macros.  Note we use "->i" instead of "->z" for boolean; this
  * is because the interpreter expects everything to be a 32-bit value.

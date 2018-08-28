@@ -24,10 +24,10 @@
 #ifndef DALVIK_JDWP_JDWP_H_
 #define DALVIK_JDWP_JDWP_H_
 
-#include "../jdwp/JdwpConstants.h"
-#include "../jdwp/ExpandBuf.h"
-#include "../Common.h"
-#include "../Bits.h"
+#include "JdwpConstants.h"
+#include "ExpandBuf.h"
+#include "Common.h"
+#include "Bits.h"
 #include <pthread.h>
 
 struct JdwpState;       /* opaque */

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "../Dalvik.h"
-#include "../native/InternalNativePriv.h"
+#include "Dalvik.h"
+#include "InternalNativePriv.h"
 
 #include <stdlib.h>
 #include <stdint.h>

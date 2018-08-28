@@ -20,23 +20,23 @@
 /*
  * Garbage-collecting memory allocator.
  */
-#include "../Dalvik.h"
-#include "../alloc/HeapBitmap.h"
-#include "../alloc/Verify.h"
-#include "../alloc/Heap.h"
-#include "../alloc/HeapInternal.h"
-#include "../alloc/DdmHeap.h"
-#include "../alloc/HeapSource.h"
-#include "../alloc/MarkSweep.h"
-#include "../os/os.h"
+#include "Dalvik.h"
+#include "HeapBitmap.h"
+#include "Verify.h"
+#include "Heap.h"
+#include "HeapInternal.h"
+#include "DdmHeap.h"
+#include "HeapSource.h"
+#include "MarkSweep.h"
+#include "os.h"
 #include <sys/mman.h>
-#include "../hprof/Hprof.h"
+#include "Hprof.h"
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <limits.h>
 #include <errno.h>
-#include "../../cutils/trace.h"
-#include "../../cutils/process_name.h"
+#include "trace.h"
+#include "process_name.h"
 
 #ifdef HAVE_ANDROID_OS
 #include "cutils/properties.h"

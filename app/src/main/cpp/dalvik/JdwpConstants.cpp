@@ -18,7 +18,7 @@
  * have enumerated constant reflection in C.)  These are only needed for
  * making the output human-readable.
  */
-#include "../jdwp/JdwpConstants.h"
+#include "JdwpConstants.h"
 
 /*
  * Return a string for the error code.

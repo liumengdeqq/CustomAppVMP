@@ -17,9 +17,9 @@
 /*
  * dalvik.system.VMStack
  */
-#include "../Dalvik.h"
-#include "../../utils/UniquePtr.h"
-#include "../native/InternalNativePriv.h"
+#include "Dalvik.h"
+#include "UniquePtr.h"
+#include "InternalNativePriv.h"
 
 /*
  * public static ClassLoader getCallingClassLoader()

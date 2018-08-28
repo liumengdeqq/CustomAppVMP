@@ -19,7 +19,7 @@
  */
 #ifndef DALVIK_OPTIMIZE_H_
 #define DALVIK_OPTIMIZE_H_
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /*
  * Entry point from DEX preparation.
  */

@@ -17,7 +17,7 @@
 #ifndef DALVIK_ALLOC_WRITEBARRIER_H_
 #define DALVIK_ALLOC_WRITEBARRIER_H_
 
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /*
  * Note writes to the heap. These functions must be called if a field
  * of an Object in the heap changes, and before any GC safe-point. The

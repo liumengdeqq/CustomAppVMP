@@ -18,7 +18,7 @@
  * Android's method call profiling goodies.
  */
 #include "Dalvik.h"
-#include "interp/InterpDefs.h"
+#include "InterpDefs.h"
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -30,7 +30,7 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#include "../cutils/open_memstream.h"
+#include "open_memstream.h"
 
 #ifdef HAVE_ANDROID_OS
 # define UPDATE_MAGIC_PAGE      1

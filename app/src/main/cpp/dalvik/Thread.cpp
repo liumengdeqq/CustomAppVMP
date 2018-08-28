@@ -20,7 +20,7 @@
  * Thread support.
  */
 #include "Dalvik.h"
-#include "os/os.h"
+#include "os.h"
 
 #include <stdlib.h>
 #include <unistd.h>

@@ -17,13 +17,13 @@
 /*
  * dalvik.system.VMRuntime
  */
-#include "../Dalvik.h"
-#include "../../ScopedPthreadMutexLock.h"
-#include "../../utils/UniquePtr.h"
-#include "../alloc/HeapSource.h"
-#include "../alloc/Visit.h"
-#include "../../libdex/DexClass.h"
-#include "../native/InternalNativePriv.h"
+#include "Dalvik.h"
+#include "ScopedPthreadMutexLock.h"
+#include "UniquePtr.h"
+#include "HeapSource.h"
+#include "Visit.h"
+#include "DexClass.h"
+#include "InternalNativePriv.h"
 
 #include <limits.h>
 

@@ -19,7 +19,7 @@
  */
 #ifndef DALVIK_DEXVERIFY_H_
 #define DALVIK_DEXVERIFY_H_
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /*
  * Global verification mode.  These must be in order from least verification
  * to most.  If we're using "exact GC", we may need to perform some of

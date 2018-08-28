@@ -17,7 +17,7 @@
 #include "DlMalloc.h"
 
 #include <stdint.h>
-#include "../Common.h"
+#include "Common.h"
 
 /* Dalvik specific morecore implementation defined in HeapSource.cpp. */
 #define MORECORE(x) dvmHeapSourceMorecore(m, x)

@@ -18,7 +18,7 @@
  */
 #ifndef DALVIK_OO_RESOLVE_H_
 #define DALVIK_OO_RESOLVE_H_
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /*
  * "Direct" and "virtual" methods are stored independently.  The type of call
  * used to invoke the method determines which list we search, and whether

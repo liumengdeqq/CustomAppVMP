@@ -18,7 +18,7 @@
  */
 #ifndef DALVIK_REFLECT_REFLECT_H_
 #define DALVIK_REFLECT_REFLECT_H_
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /*
  * During startup, validate the "box" classes, e.g. java/lang/Integer.
  */

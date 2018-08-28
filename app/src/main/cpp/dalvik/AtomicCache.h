@@ -20,7 +20,7 @@
 #define DALVIK_ATOMICCACHE_H_
 
 #include "Common.h"
-#include "../cutils/atomic-arm.h"
+#include "atomic-arm.h"
 /*
  * If set to "1", gather some stats on our caching success rate.
  */

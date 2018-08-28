@@ -22,8 +22,8 @@
 #define DALVIK_OO_OBJECT_H_
 
 #include <stddef.h>
-#include "../Atomic.h"
-#include "../Dalvik.h"
+#include "Atomic.h"
+#include "Dalvik.h"
 /* fwd decl */
 struct DataObject;
 struct InitiatingLoaderList;

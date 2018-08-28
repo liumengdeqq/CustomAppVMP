@@ -21,13 +21,13 @@
  * TODO: might benefit from a signature-->class lookup cache.  Could avoid
  * some string-peeling and wouldn't need to compute hashes.
  */
-#include "../Dalvik.h"
-#include "../analysis/Liveness.h"
-#include "../analysis/CodeVerify.h"
-#include "../analysis/Optimize.h"
-#include "../analysis/RegisterMap.h"
-#include "../../libdex/DexCatch.h"
-#include "../../libdex/InstrUtils.h"
+#include "Dalvik.h"
+#include "Liveness.h"
+#include "CodeVerify.h"
+#include "Optimize.h"
+#include "RegisterMap.h"
+#include "DexCatch.h"
+#include "InstrUtils.h"
 #include <stddef.h>
 #include "VerifySubs.h"
 #include "VfyBasicBlock.h"

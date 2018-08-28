@@ -19,8 +19,8 @@
  * points and the static constraint checks.
  */
 #include "DexVerify.h"
-#include "../analysis/CodeVerify.h"
-#include "../../libdex/DexCatch.h"
+#include "CodeVerify.h"
+#include "DexCatch.h"
 
 
 /* fwd */

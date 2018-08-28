@@ -17,7 +17,7 @@
 #ifndef DALVIK_ALLOC_VISIT_H_
 #define DALVIK_ALLOC_VISIT_H_
 
-#include "../Dalvik.h"
+#include "Dalvik.h"
 
 enum RootType {
   ROOT_UNKNOWN = 0,

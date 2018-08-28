@@ -23,7 +23,7 @@
 
 #include "DexFile.h"
 #include "Leb128.h"
-
+#include "Dalvik.h"
 /*
  * Catch handler entry, used while iterating over catch_handler_items.
  */

@@ -23,7 +23,7 @@
 #ifndef DALVIK_ALLOC_CARDTABLE_H_
 #define DALVIK_ALLOC_CARDTABLE_H_
 
-#include "../Dalvik.h"
+#include "Dalvik.h"
 #define GC_CARD_SHIFT 7
 #define GC_CARD_SIZE (1 << GC_CARD_SHIFT)
 #define GC_CARD_CLEAN 0

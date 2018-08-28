@@ -21,7 +21,7 @@
 
 #include "JdwpConstants.h"
 #include "ExpandBuf.h"
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /*
  * Event modifiers.  A JdwpEvent may have zero or more of these.
  */

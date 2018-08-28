@@ -27,7 +27,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <fcntl.h>
-#include "../cutils/ashmem.h"
+#include "ashmem.h"
 #include <sys/mman.h>
 
 /*

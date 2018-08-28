@@ -30,7 +30,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#include "../cutils/open_memstream.h"
+#include "open_memstream.h"
 
 static void* signalCatcherThreadStart(void* arg);
 

@@ -17,9 +17,9 @@
 /*
  * java.lang.Class
  */
-#include "../Dalvik.h"
-#include "../native/InternalNativePriv.h"
-#include "../../ScopedPthreadMutexLock.h"
+#include "Dalvik.h"
+#include "InternalNativePriv.h"
+#include "ScopedPthreadMutexLock.h"
 
 /*
  * native public boolean desiredAssertionStatus()

@@ -20,13 +20,13 @@
  * precision in the garbage collector when scanning references in the
  * interpreter thread stacks.
  */
-#include "../Dalvik.h"
-#include "../../utils/UniquePtr.h"
-#include "../analysis/CodeVerify.h"
-#include "../analysis/RegisterMap.h"
-#include "../../libdex/DexCatch.h"
-#include "../../libdex/InstrUtils.h"
-#include "../../libdex/Leb128.h"
+#include "Dalvik.h"
+#include "UniquePtr.h"
+#include "CodeVerify.h"
+#include "RegisterMap.h"
+#include "DexCatch.h"
+#include "InstrUtils.h"
+#include "Leb128.h"
 
 #include <stddef.h>
 

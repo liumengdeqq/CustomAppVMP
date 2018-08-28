@@ -24,7 +24,7 @@
 #include <pthread.h>
 #include "Common.h"
 #include "Misc.h"
-#include "jdwp/Jdwp.h"
+#include "Jdwp.h"
 
 /* fwd decl */
 struct Object;

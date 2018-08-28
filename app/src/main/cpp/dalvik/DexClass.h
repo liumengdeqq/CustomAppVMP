@@ -23,7 +23,7 @@
 
 #include "DexFile.h"
 #include "Leb128.h"
-
+#include "Dalvik.h"
 /* expanded form of a class_data_item header */
 struct DexClassDataHeader {
     u4 staticFieldsSize;

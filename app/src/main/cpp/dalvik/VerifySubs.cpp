@@ -18,8 +18,8 @@
  * Dalvik verification subroutines.
  */
 #include "VerifySubs.h"
-#include "../analysis/CodeVerify.h"
-#include "../../libdex/InstrUtils.h"
+#include "CodeVerify.h"
+#include "InstrUtils.h"
 
 
 /*

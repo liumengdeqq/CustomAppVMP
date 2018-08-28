@@ -16,11 +16,11 @@
 
 #ifndef DALVIK_ALLOC_VERIFY_H_
 #define DALVIK_ALLOC_VERIFY_H_
-#include "../Dalvik.h"
-#include "../alloc/HeapBitmap.h"
-#include "../alloc/HeapSource.h"
-#include "../alloc/Verify.h"
-#include "../alloc/Visit.h"
+#include "Dalvik.h"
+#include "HeapBitmap.h"
+#include "HeapSource.h"
+#include "Verify.h"
+#include "Visit.h"
 /*
  * Verifies an object reference.
  */

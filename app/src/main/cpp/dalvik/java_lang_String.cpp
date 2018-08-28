@@ -17,8 +17,8 @@
 /*
  * java.lang.String
  */
-#include "../Dalvik.h"
-#include "../native/InternalNativePriv.h"
+#include "Dalvik.h"
+#include "InternalNativePriv.h"
 
 static void String_charAt(const u4* args, JValue* pResult)
 {

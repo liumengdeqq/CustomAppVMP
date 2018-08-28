@@ -18,7 +18,7 @@
  */
 #ifndef DALVIK_OO_ARRAY_H_
 #define DALVIK_OO_ARRAY_H_
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /*
  * Find a matching array class.  If it doesn't exist, create it.
  *

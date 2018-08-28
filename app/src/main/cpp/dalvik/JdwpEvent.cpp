@@ -16,11 +16,11 @@
 /*
  * Send events to the debugger.
  */
-#include "../jdwp/JdwpPriv.h"
-#include "../jdwp/JdwpConstants.h"
-#include "../jdwp/JdwpHandler.h"
-#include "../jdwp/JdwpEvent.h"
-#include "../jdwp/ExpandBuf.h"
+#include "JdwpPriv.h"
+#include "JdwpConstants.h"
+#include "JdwpHandler.h"
+#include "JdwpEvent.h"
+#include "ExpandBuf.h"
 
 #include <stdlib.h>
 #include <string.h>

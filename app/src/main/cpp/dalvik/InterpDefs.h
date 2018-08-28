@@ -24,7 +24,7 @@
 #ifndef DALVIK_INTERP_DEFS_H_
 #define DALVIK_INTERP_DEFS_H_
 
-#include "../Dalvik.h"
+#include "Dalvik.h"
 #if defined(WITH_JIT)
 /*
  * Size of save area for callee-save FP regs, which are not automatically

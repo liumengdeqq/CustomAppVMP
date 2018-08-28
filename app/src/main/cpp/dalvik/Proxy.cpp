@@ -23,7 +23,7 @@
  * we add support for DefineClass with standard classfiles we can
  * eliminate this.
  */
-#include "../Dalvik.h"
+#include "Dalvik.h"
 
 #include <stdlib.h>
 

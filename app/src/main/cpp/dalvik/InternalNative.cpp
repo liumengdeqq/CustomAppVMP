@@ -17,8 +17,8 @@
 /*
  * Internal-native initialization and some common utility functions.
  */
-#include "../Dalvik.h"
-#include "../native/InternalNativePriv.h"
+#include "Dalvik.h"
+#include "InternalNativePriv.h"
 
 /*
  * Set of classes for which we provide methods.

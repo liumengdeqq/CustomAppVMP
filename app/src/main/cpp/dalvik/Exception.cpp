@@ -17,7 +17,7 @@
  * Exception handling.
  */
 #include "Dalvik.h"
-#include "../libdex/DexCatch.h"
+#include "DexCatch.h"
 
 #include <stdlib.h>
 

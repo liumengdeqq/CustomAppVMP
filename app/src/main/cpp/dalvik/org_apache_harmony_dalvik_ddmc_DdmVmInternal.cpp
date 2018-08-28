@@ -17,8 +17,8 @@
 /*
  * org.apache.harmony.dalvik.ddmc.DdmVmInternal
  */
-#include "../Dalvik.h"
-#include "../native/InternalNativePriv.h"
+#include "Dalvik.h"
+#include "InternalNativePriv.h"
 
 
 /*

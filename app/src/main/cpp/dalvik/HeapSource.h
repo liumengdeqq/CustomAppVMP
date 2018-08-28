@@ -16,8 +16,8 @@
 #ifndef DALVIK_HEAP_SOURCE_H_
 #define DALVIK_HEAP_SOURCE_H_
 
-#include "../alloc/Heap.h"
-#include "../alloc/HeapInternal.h" // for GcHeap
+#include "Heap.h"
+#include "HeapInternal.h" // for GcHeap
 
 /* dlmalloc uses one size_t per allocated chunk.
  */

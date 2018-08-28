@@ -19,7 +19,7 @@
 #ifndef DALVIK_JDWP_EXPANDBUF_H_
 #define DALVIK_JDWP_EXPANDBUF_H_
 
-#include "../Common.h"     // need u1/u2/u4/u8 types
+#include "Common.h"     // need u1/u2/u4/u8 types
 
 struct ExpandBuf;   /* private */
 

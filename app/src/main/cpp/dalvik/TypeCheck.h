@@ -18,7 +18,7 @@
  */
 #ifndef DALVIK_OO_TYPECHECK_H_
 #define DALVIK_OO_TYPECHECK_H_
-#include "../Dalvik.h"
+#include "Dalvik.h"
 /* VM startup/shutdown */
 bool dvmInstanceofStartup(void);
 void dvmInstanceofShutdown(void);
