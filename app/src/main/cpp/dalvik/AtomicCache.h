@@ -167,5 +167,11 @@ void dvmFreeAtomicCache(AtomicCache* cache);
  * Debugging.
  */
 void dvmDumpAtomicCacheStats(const AtomicCache* pCache);
+void dvmUpdateAtomicCache(u4 key1, u4 key2, u4 value, AtomicCacheEntry* pEntry,
+                          u4 firstVersion
+#if CALC_CACHE_STATS > 0
+        , AtomicCache* pCache
+#endif
+);
 
 #endif  // DALVIK_ATOMICCACHE_H_
