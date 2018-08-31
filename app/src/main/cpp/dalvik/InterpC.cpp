@@ -14,6 +14,7 @@
 #include "WriteBarrier.h"
 #include "Object.h"
 #include "ObjectInlines.h"
+#include <math.h>
 //////////////////////////////////////////////////////////////////////////
 #define GOTO_TARGET_DECL(_target, ...)
 inline void dvmAbort(void) {
@@ -1166,6 +1167,134 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
             GET_REGISTER##_regsize(vdst);                                   \
     }                                                                       \
     FINISH(2);
+#define HANDLE_IGET_X(_opcode, _opname, _ftype, _regsize)                   \
+    HANDLE_OPCODE(_opcode /*vA, vB, field@CCCC*/)                           \
+    {                                                                       \
+        InstField* ifield;                                                  \
+        Object* obj;                                                        \
+        EXPORT_PC();                                                        \
+        vdst = INST_A(inst);                                                \
+        vsrc1 = INST_B(inst);   /* object ptr */                            \
+        ref = FETCH(1);         /* field ref */                             \
+        ILOGV("|iget%s v%d,v%d,field@0x%04x", (_opname), vdst, vsrc1, ref); \
+        obj = (Object*) GET_REGISTER(vsrc1);                                \
+        if (!checkForNull(obj))                                             \
+            GOTO_exceptionThrown();                                         \
+        ifield = (InstField*) dvmDexGetResolvedField(methodClassDex, ref);  \
+        if (ifield == NULL) {                                               \
+            ifield = dvmResolveInstField(curMethod->clazz, ref);            \
+            if (ifield == NULL)                                             \
+                GOTO_exceptionThrown();                                     \
+        }                                                                   \
+        SET_REGISTER##_regsize(vdst,                                        \
+            dvmGetField##_ftype(obj, ifield->byteOffset));                  \
+        ILOGV("+ IGET '%s'=0x%08llx", ifield->name,                         \
+            (u8) GET_REGISTER##_regsize(vdst));                             \
+    }                                                                       \
+    FINISH(2);
+#define HANDLE_SGET_X(_opcode, _opname, _ftype, _regsize)                   \
+    HANDLE_OPCODE(_opcode /*vAA, field@BBBB*/)                              \
+    {                                                                       \
+        StaticField* sfield;                                                \
+        vdst = INST_AA(inst);                                               \
+        ref = FETCH(1);         /* field ref */                             \
+        ILOGV("|sget%s v%d,sfield@0x%04x", (_opname), vdst, ref);           \
+        sfield = (StaticField*)dvmDexGetResolvedField(methodClassDex, ref); \
+        if (sfield == NULL) {                                               \
+            EXPORT_PC();                                                    \
+            sfield = dvmResolveStaticField(curMethod->clazz, ref);          \
+            if (sfield == NULL)                                             \
+                GOTO_exceptionThrown();                                     \
+            if (dvmDexGetResolvedField(methodClassDex, ref) == NULL) {      \
+                JIT_STUB_HACK(dvmJitEndTraceSelect(self,pc));               \
+            }                                                               \
+        }                                                                   \
+        SET_REGISTER##_regsize(vdst, dvmGetStaticField##_ftype(sfield));    \
+        ILOGV("+ SGET '%s'=0x%08llx",                                       \
+            sfield->name, (u8)GET_REGISTER##_regsize(vdst));                \
+    }                                                                       \
+    FINISH(2);
+#define HANDLE_IPUT_X(_opcode, _opname, _ftype, _regsize)                   \
+    HANDLE_OPCODE(_opcode /*vA, vB, field@CCCC*/)                           \
+    {                                                                       \
+        InstField* ifield;                                                  \
+        Object* obj;                                                        \
+        EXPORT_PC();                                                        \
+        vdst = INST_A(inst);                                                \
+        vsrc1 = INST_B(inst);   /* object ptr */                            \
+        ref = FETCH(1);         /* field ref */                             \
+        ILOGV("|iput%s v%d,v%d,field@0x%04x", (_opname), vdst, vsrc1, ref); \
+        obj = (Object*) GET_REGISTER(vsrc1);                                \
+        if (!checkForNull(obj))                                             \
+            GOTO_exceptionThrown();                                         \
+        ifield = (InstField*) dvmDexGetResolvedField(methodClassDex, ref);  \
+        if (ifield == NULL) {                                               \
+            ifield = dvmResolveInstField(curMethod->clazz, ref);            \
+            if (ifield == NULL)                                             \
+                GOTO_exceptionThrown();                                     \
+        }                                                                   \
+        dvmSetField##_ftype(obj, ifield->byteOffset,                        \
+            GET_REGISTER##_regsize(vdst));                                  \
+        ILOGV("+ IPUT '%s'=0x%08llx", ifield->name,                         \
+            (u8) GET_REGISTER##_regsize(vdst));                             \
+    }                                                                       \
+    FINISH(2);
+#define HANDLE_SPUT_X(_opcode, _opname, _ftype, _regsize)                   \
+    HANDLE_OPCODE(_opcode /*vAA, field@BBBB*/)                              \
+    {                                                                       \
+        StaticField* sfield;                                                \
+        vdst = INST_AA(inst);                                               \
+        ref = FETCH(1);         /* field ref */                             \
+        ILOGV("|sput%s v%d,sfield@0x%04x", (_opname), vdst, ref);           \
+        sfield = (StaticField*)dvmDexGetResolvedField(methodClassDex, ref); \
+        if (sfield == NULL) {                                               \
+            EXPORT_PC();                                                    \
+            sfield = dvmResolveStaticField(curMethod->clazz, ref);          \
+            if (sfield == NULL)                                             \
+                GOTO_exceptionThrown();                                     \
+            if (dvmDexGetResolvedField(methodClassDex, ref) == NULL) {      \
+                JIT_STUB_HACK(dvmJitEndTraceSelect(self,pc));               \
+            }                                                               \
+        }                                                                   \
+        dvmSetStaticField##_ftype(sfield, GET_REGISTER##_regsize(vdst));    \
+        ILOGV("+ SPUT '%s'=0x%08llx",                                       \
+            sfield->name, (u8)GET_REGISTER##_regsize(vdst));                \
+    }                                                                       \
+    FINISH(2);
+#define HANDLE_IGET_X_QUICK(_opcode, _opname, _ftype, _regsize)             \
+    HANDLE_OPCODE(_opcode /*vA, vB, field@CCCC*/)                           \
+    {                                                                       \
+        Object* obj;                                                        \
+        vdst = INST_A(inst);                                                \
+        vsrc1 = INST_B(inst);   /* object ptr */                            \
+        ref = FETCH(1);         /* field offset */                          \
+        ILOGV("|iget%s-quick v%d,v%d,field@+%u",                            \
+            (_opname), vdst, vsrc1, ref);                                   \
+        obj = (Object*) GET_REGISTER(vsrc1);                                \
+        if (!checkForNullExportPC(obj, fp, pc))                             \
+            GOTO_exceptionThrown();                                         \
+        SET_REGISTER##_regsize(vdst, dvmGetField##_ftype(obj, ref));        \
+        ILOGV("+ IGETQ %d=0x%08llx", ref,                                   \
+            (u8) GET_REGISTER##_regsize(vdst));                             \
+    }                                                                       \
+    FINISH(2);
+#define HANDLE_IPUT_X_QUICK(_opcode, _opname, _ftype, _regsize)             \
+    HANDLE_OPCODE(_opcode /*vA, vB, field@CCCC*/)                           \
+    {                                                                       \
+        Object* obj;                                                        \
+        vdst = INST_A(inst);                                                \
+        vsrc1 = INST_B(inst);   /* object ptr */                            \
+        ref = FETCH(1);         /* field offset */                          \
+        ILOGV("|iput%s-quick v%d,v%d,field@0x%04x",                         \
+            (_opname), vdst, vsrc1, ref);                                   \
+        obj = (Object*) GET_REGISTER(vsrc1);                                \
+        if (!checkForNullExportPC(obj, fp, pc))                             \
+            GOTO_exceptionThrown();                                         \
+        dvmSetField##_ftype(obj, ref, GET_REGISTER##_regsize(vdst));        \
+        ILOGV("+ IPUTQ %d=0x%08llx", ref,                                   \
+            (u8) GET_REGISTER##_regsize(vdst));                             \
+    }                                                                       \
+    FINISH(2);
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -2074,7 +2203,7 @@ HANDLE_OPCODE(OP_APUT_OBJECT /*vAA, vBB, vCC*/)
     }
     obj = (Object*) GET_REGISTER(vdst);
     if (obj != NULL) {
-        if (!checkForNull(obj))
+        if (!checkForNull(env,obj))
             GOTO_exceptionThrown();
         if (!dvmCanPutArrayElementHook(obj->clazz, arrayObj->clazz)) {
             MY_LOG_INFO("Can't put a '%s'(%p) into array type='%s'(%p)",
@@ -2091,138 +2220,576 @@ HANDLE_OPCODE(OP_APUT_OBJECT /*vAA, vBB, vCC*/)
 }
 FINISH(2);
 OP_END
-HANDLE_OPCODE(OP_APUT_BOOLEAN)
-HANDLE_OPCODE(OP_APUT_BYTE)
-HANDLE_OPCODE(OP_APUT_CHAR)
-HANDLE_OPCODE(OP_APUT_SHORT)
-HANDLE_OPCODE(OP_IGET)
-HANDLE_OPCODE(OP_IGET_WIDE)
-HANDLE_OPCODE(OP_IGET_OBJECT)
-HANDLE_OPCODE(OP_IGET_BOOLEAN)
-HANDLE_OPCODE(OP_IGET_BYTE)
-HANDLE_OPCODE(OP_IGET_CHAR)
-HANDLE_OPCODE(OP_IGET_SHORT)
-HANDLE_OPCODE(OP_IPUT)
-HANDLE_OPCODE(OP_IPUT_WIDE)
-HANDLE_OPCODE(OP_IPUT_OBJECT)
-HANDLE_OPCODE(OP_IPUT_BOOLEAN)
-HANDLE_OPCODE(OP_IPUT_BYTE)
-HANDLE_OPCODE(OP_IPUT_CHAR)
-HANDLE_OPCODE(OP_IPUT_SHORT)
-HANDLE_OPCODE(OP_SGET)
-HANDLE_OPCODE(OP_SGET_WIDE)
-HANDLE_OPCODE(OP_SGET_OBJECT)
-HANDLE_OPCODE(OP_SGET_BOOLEAN)
-HANDLE_OPCODE(OP_SGET_BYTE)
-HANDLE_OPCODE(OP_SGET_CHAR)
-HANDLE_OPCODE(OP_SGET_SHORT)
-HANDLE_OPCODE(OP_SPUT)
-HANDLE_OPCODE(OP_SPUT_WIDE)
-HANDLE_OPCODE(OP_SPUT_OBJECT)
-HANDLE_OPCODE(OP_SPUT_BOOLEAN)
-HANDLE_OPCODE(OP_SPUT_BYTE)
-HANDLE_OPCODE(OP_SPUT_CHAR)
-HANDLE_OPCODE(OP_SPUT_SHORT)
+HANDLE_OP_APUT(OP_APUT_BOOLEAN, "-boolean", u1, )
+OP_END
+
+/* File: c/OP_APUT_BYTE.cpp */
+HANDLE_OP_APUT(OP_APUT_BYTE, "-byte", s1, )
+OP_END
+
+/* File: c/OP_APUT_CHAR.cpp */
+HANDLE_OP_APUT(OP_APUT_CHAR, "-char", u2, )
+OP_END
+
+/* File: c/OP_APUT_SHORT.cpp */
+HANDLE_OP_APUT(OP_APUT_SHORT, "-short", s2, )
+OP_END
+/* File: c/OP_IGET.cpp */
+HANDLE_IGET_X(OP_IGET,"", Int, )
+OP_END
+
+/* File: c/OP_IGET_WIDE.cpp */
+HANDLE_IGET_X(OP_IGET_WIDE,             "-wide", Long, _WIDE)
+OP_END
+
+/* File: c/OP_IGET_OBJECT.cpp */
+HANDLE_IGET_X(OP_IGET_OBJECT,           "-object", Object, _AS_OBJECT)
+OP_END
+
+/* File: c/OP_IGET_BOOLEAN.cpp */
+HANDLE_IGET_X(OP_IGET_BOOLEAN,          "", Int, )
+OP_END
+
+/* File: c/OP_IGET_BYTE.cpp */
+HANDLE_IGET_X(OP_IGET_BYTE,             "", Int, )
+OP_END
+
+/* File: c/OP_IGET_CHAR.cpp */
+HANDLE_IGET_X(OP_IGET_CHAR,             "", Int, )
+OP_END
+
+/* File: c/OP_IGET_SHORT.cpp */
+HANDLE_IGET_X(OP_IGET_SHORT,            "", Int, )
+OP_END
+
+/* File: c/OP_IPUT.cpp */
+HANDLE_IPUT_X(OP_IPUT,                  "", Int, )
+OP_END
+
+/* File: c/OP_IPUT_WIDE.cpp */
+HANDLE_IPUT_X(OP_IPUT_WIDE,             "-wide", Long, _WIDE)
+OP_END
+
+/* File: c/OP_IPUT_OBJECT.cpp */
+/*
+* The VM spec says we should verify that the reference being stored into
+* the field is assignment compatible.  In practice, many popular VMs don't
+* do this because it slows down a very common operation.  It's not so bad
+* for us, since "dexopt" quickens it whenever possible, but it's still an
+* issue.
+*
+* To make this spec-complaint, we'd need to add a ClassObject pointer to
+* the Field struct, resolve the field's type descriptor at link or class
+* init time, and then verify the type here.
+*/
+HANDLE_IPUT_X(OP_IPUT_OBJECT,           "-object", Object, _AS_OBJECT)
+OP_END
+
+/* File: c/OP_IPUT_BOOLEAN.cpp */
+HANDLE_IPUT_X(OP_IPUT_BOOLEAN,          "", Int, )
+OP_END
+
+/* File: c/OP_IPUT_BYTE.cpp */
+HANDLE_IPUT_X(OP_IPUT_BYTE,             "", Int, )
+OP_END
+
+/* File: c/OP_IPUT_CHAR.cpp */
+HANDLE_IPUT_X(OP_IPUT_CHAR,             "", Int, )
+OP_END
+
+/* File: c/OP_IPUT_SHORT.cpp */
+HANDLE_IPUT_X(OP_IPUT_SHORT,            "", Int, )
+OP_END
+/* File: c/OP_SGET.cpp */
+HANDLE_SGET_X(OP_SGET,                  "", Int, )
+OP_END
+
+/* File: c/OP_SGET_WIDE.cpp */
+HANDLE_SGET_X(OP_SGET_WIDE,             "-wide", Long, _WIDE)
+OP_END
+
+/* File: c/OP_SGET_OBJECT.cpp */
+HANDLE_SGET_X(OP_SGET_OBJECT,           "-object", Object, _AS_OBJECT)
+OP_END
+
+/* File: c/OP_SGET_BOOLEAN.cpp */
+HANDLE_SGET_X(OP_SGET_BOOLEAN,          "", Int, )
+OP_END
+
+/* File: c/OP_SGET_BYTE.cpp */
+HANDLE_SGET_X(OP_SGET_BYTE,             "", Int, )
+OP_END
+
+/* File: c/OP_SGET_CHAR.cpp */
+HANDLE_SGET_X(OP_SGET_CHAR,             "", Int, )
+OP_END
+
+/* File: c/OP_SGET_SHORT.cpp */
+HANDLE_SGET_X(OP_SGET_SHORT,            "", Int, )
+OP_END
+/* File: c/OP_SPUT.cpp */
+HANDLE_SPUT_X(OP_SPUT,                  "", Int, )
+OP_END
+
+/* File: c/OP_SPUT_WIDE.cpp */
+HANDLE_SPUT_X(OP_SPUT_WIDE,             "-wide", Long, _WIDE)
+OP_END
+
+/* File: c/OP_SPUT_OBJECT.cpp */
+HANDLE_SPUT_X(OP_SPUT_OBJECT,           "-object", Object, _AS_OBJECT)
+OP_END
+
+/* File: c/OP_SPUT_BOOLEAN.cpp */
+HANDLE_SPUT_X(OP_SPUT_BOOLEAN,          "", Int, )
+OP_END
+
+/* File: c/OP_SPUT_BYTE.cpp */
+HANDLE_SPUT_X(OP_SPUT_BYTE,             "", Int, )
+OP_END
+
+/* File: c/OP_SPUT_CHAR.cpp */
+HANDLE_SPUT_X(OP_SPUT_CHAR,             "", Int, )
+OP_END
+
+/* File: c/OP_SPUT_SHORT.cpp */
+HANDLE_SPUT_X(OP_SPUT_SHORT,            "", Int, )
+OP_END
+
 HANDLE_OPCODE(OP_INVOKE_VIRTUAL)
 HANDLE_OPCODE(OP_INVOKE_SUPER)
 HANDLE_OPCODE(OP_INVOKE_DIRECT)
 HANDLE_OPCODE(OP_INVOKE_STATIC)
 HANDLE_OPCODE(OP_INVOKE_INTERFACE)
+/* File: c/OP_UNUSED_73.cpp */
 HANDLE_OPCODE(OP_UNUSED_73)
-HANDLE_OPCODE(OP_INVOKE_VIRTUAL_RANGE)
-HANDLE_OPCODE(OP_INVOKE_SUPER_RANGE)
-HANDLE_OPCODE(OP_INVOKE_DIRECT_RANGE)
-HANDLE_OPCODE(OP_INVOKE_STATIC_RANGE)
-HANDLE_OPCODE(OP_INVOKE_INTERFACE_RANGE)
+OP_END
+
+/* File: c/OP_INVOKE_VIRTUAL_RANGE.cpp */
+HANDLE_OPCODE(OP_INVOKE_VIRTUAL_RANGE /*{vCCCC..v(CCCC+AA-1)}, meth@BBBB*/)
+GOTO_invoke(invokeVirtual, true);
+OP_END
+
+/* File: c/OP_INVOKE_SUPER_RANGE.cpp */
+HANDLE_OPCODE(OP_INVOKE_SUPER_RANGE /*{vCCCC..v(CCCC+AA-1)}, meth@BBBB*/)
+GOTO_invoke(invokeSuper, true);
+OP_END
+
+/* File: c/OP_INVOKE_DIRECT_RANGE.cpp */
+HANDLE_OPCODE(OP_INVOKE_DIRECT_RANGE /*{vCCCC..v(CCCC+AA-1)}, meth@BBBB*/)
+GOTO_invoke(invokeDirect, true);
+OP_END
+
+/* File: c/OP_INVOKE_STATIC_RANGE.cpp */
+HANDLE_OPCODE(OP_INVOKE_STATIC_RANGE /*{vCCCC..v(CCCC+AA-1)}, meth@BBBB*/)
+GOTO_invoke(invokeStatic, true);
+OP_END
+
+/* File: c/OP_INVOKE_INTERFACE_RANGE.cpp */
+HANDLE_OPCODE(OP_INVOKE_INTERFACE_RANGE /*{vCCCC..v(CCCC+AA-1)}, meth@BBBB*/)
+GOTO_invoke(invokeInterface, true);
+OP_END
+
+/* File: c/OP_UNUSED_79.cpp */
 HANDLE_OPCODE(OP_UNUSED_79)
+OP_END
+
+/* File: c/OP_UNUSED_7A.cpp */
 HANDLE_OPCODE(OP_UNUSED_7A)
-HANDLE_OPCODE(OP_NEG_INT)
-HANDLE_OPCODE(OP_NOT_INT)
-HANDLE_OPCODE(OP_NEG_LONG)
-HANDLE_OPCODE(OP_NOT_LONG)
-HANDLE_OPCODE(OP_NEG_FLOAT)
-HANDLE_OPCODE(OP_NEG_DOUBLE)
-HANDLE_OPCODE(OP_INT_TO_LONG)
-HANDLE_OPCODE(OP_INT_TO_FLOAT)
-HANDLE_OPCODE(OP_INT_TO_DOUBLE)
-HANDLE_OPCODE(OP_LONG_TO_INT)
-HANDLE_OPCODE(OP_LONG_TO_FLOAT)
-HANDLE_OPCODE(OP_LONG_TO_DOUBLE)
-HANDLE_OPCODE(OP_FLOAT_TO_INT)
-HANDLE_OPCODE(OP_FLOAT_TO_LONG)
-HANDLE_OPCODE(OP_FLOAT_TO_DOUBLE)
-HANDLE_OPCODE(OP_DOUBLE_TO_INT)
-HANDLE_OPCODE(OP_DOUBLE_TO_LONG)
-HANDLE_OPCODE(OP_DOUBLE_TO_FLOAT)
-HANDLE_OPCODE(OP_INT_TO_BYTE)
-HANDLE_OPCODE(OP_INT_TO_CHAR)
-HANDLE_OPCODE(OP_INT_TO_SHORT)
-HANDLE_OPCODE(OP_ADD_INT)
-HANDLE_OPCODE(OP_SUB_INT)
-HANDLE_OPCODE(OP_MUL_INT)
-HANDLE_OPCODE(OP_DIV_INT)
-HANDLE_OPCODE(OP_REM_INT)
-HANDLE_OPCODE(OP_AND_INT)
-HANDLE_OPCODE(OP_OR_INT)
-HANDLE_OPCODE(OP_XOR_INT)
-HANDLE_OPCODE(OP_SHL_INT)
-HANDLE_OPCODE(OP_SHR_INT)
-HANDLE_OPCODE(OP_USHR_INT)
-HANDLE_OPCODE(OP_ADD_LONG)
-HANDLE_OPCODE(OP_SUB_LONG)
-HANDLE_OPCODE(OP_MUL_LONG)
-HANDLE_OPCODE(OP_DIV_LONG)
-HANDLE_OPCODE(OP_REM_LONG)
-HANDLE_OPCODE(OP_AND_LONG)
-HANDLE_OPCODE(OP_OR_LONG)
-HANDLE_OPCODE(OP_XOR_LONG)
-HANDLE_OPCODE(OP_SHL_LONG)
-HANDLE_OPCODE(OP_SHR_LONG)
-HANDLE_OPCODE(OP_USHR_LONG)
-HANDLE_OPCODE(OP_ADD_FLOAT)
-HANDLE_OPCODE(OP_SUB_FLOAT)
-HANDLE_OPCODE(OP_MUL_FLOAT)
-HANDLE_OPCODE(OP_DIV_FLOAT)
-HANDLE_OPCODE(OP_REM_FLOAT)
-HANDLE_OPCODE(OP_ADD_DOUBLE)
-HANDLE_OPCODE(OP_SUB_DOUBLE)
-HANDLE_OPCODE(OP_MUL_DOUBLE)
-HANDLE_OPCODE(OP_DIV_DOUBLE)
-HANDLE_OPCODE(OP_REM_DOUBLE)
-HANDLE_OPCODE(OP_ADD_INT_2ADDR)
-HANDLE_OPCODE(OP_SUB_INT_2ADDR)
-HANDLE_OPCODE(OP_MUL_INT_2ADDR)
-HANDLE_OPCODE(OP_DIV_INT_2ADDR)
-HANDLE_OPCODE(OP_REM_INT_2ADDR)
-HANDLE_OPCODE(OP_AND_INT_2ADDR)
-HANDLE_OPCODE(OP_OR_INT_2ADDR)
-HANDLE_OPCODE(OP_XOR_INT_2ADDR)
-HANDLE_OPCODE(OP_SHL_INT_2ADDR)
-HANDLE_OPCODE(OP_SHR_INT_2ADDR)
-HANDLE_OPCODE(OP_USHR_INT_2ADDR)
-HANDLE_OPCODE(OP_ADD_LONG_2ADDR)
-HANDLE_OPCODE(OP_SUB_LONG_2ADDR)
-HANDLE_OPCODE(OP_MUL_LONG_2ADDR)
-HANDLE_OPCODE(OP_DIV_LONG_2ADDR)
-HANDLE_OPCODE(OP_REM_LONG_2ADDR)
-HANDLE_OPCODE(OP_AND_LONG_2ADDR)
-HANDLE_OPCODE(OP_OR_LONG_2ADDR)
-HANDLE_OPCODE(OP_XOR_LONG_2ADDR)
-HANDLE_OPCODE(OP_SHL_LONG_2ADDR)
-HANDLE_OPCODE(OP_SHR_LONG_2ADDR)
-HANDLE_OPCODE(OP_USHR_LONG_2ADDR)
-HANDLE_OPCODE(OP_ADD_FLOAT_2ADDR)
-HANDLE_OPCODE(OP_SUB_FLOAT_2ADDR)
-HANDLE_OPCODE(OP_MUL_FLOAT_2ADDR)
-HANDLE_OPCODE(OP_DIV_FLOAT_2ADDR)
-HANDLE_OPCODE(OP_REM_FLOAT_2ADDR)
-HANDLE_OPCODE(OP_ADD_DOUBLE_2ADDR)
-HANDLE_OPCODE(OP_SUB_DOUBLE_2ADDR)
-HANDLE_OPCODE(OP_MUL_DOUBLE_2ADDR)
-HANDLE_OPCODE(OP_DIV_DOUBLE_2ADDR)
-HANDLE_OPCODE(OP_REM_DOUBLE_2ADDR)
-HANDLE_OPCODE(OP_ADD_INT_LIT16)
-HANDLE_OPCODE(OP_RSUB_INT)
+OP_END
+
+/* File: c/OP_NEG_INT.cpp */
+HANDLE_UNOP(OP_NEG_INT, "neg-int", -, , )
+OP_END
+
+/* File: c/OP_NOT_INT.cpp */
+HANDLE_UNOP(OP_NOT_INT, "not-int", , ^ 0xffffffff, )
+OP_END
+
+/* File: c/OP_NEG_LONG.cpp */
+HANDLE_UNOP(OP_NEG_LONG, "neg-long", -, , _WIDE)
+OP_END
+
+/* File: c/OP_NOT_LONG.cpp */
+HANDLE_UNOP(OP_NOT_LONG, "not-long", , ^ 0xffffffffffffffffULL, _WIDE)
+OP_END
+
+/* File: c/OP_NEG_FLOAT.cpp */
+HANDLE_UNOP(OP_NEG_FLOAT, "neg-float", -, , _FLOAT)
+OP_END
+
+/* File: c/OP_NEG_DOUBLE.cpp */
+HANDLE_UNOP(OP_NEG_DOUBLE, "neg-double", -, , _DOUBLE)
+OP_END
+
+/* File: c/OP_INT_TO_LONG.cpp */
+HANDLE_NUMCONV(OP_INT_TO_LONG,          "int-to-long", _INT, _WIDE)
+OP_END
+
+/* File: c/OP_INT_TO_FLOAT.cpp */
+HANDLE_NUMCONV(OP_INT_TO_FLOAT,         "int-to-float", _INT, _FLOAT)
+OP_END
+
+/* File: c/OP_INT_TO_DOUBLE.cpp */
+HANDLE_NUMCONV(OP_INT_TO_DOUBLE,        "int-to-double", _INT, _DOUBLE)
+OP_END
+
+/* File: c/OP_LONG_TO_INT.cpp */
+HANDLE_NUMCONV(OP_LONG_TO_INT,          "long-to-int", _WIDE, _INT)
+OP_END
+
+/* File: c/OP_LONG_TO_FLOAT.cpp */
+HANDLE_NUMCONV(OP_LONG_TO_FLOAT,        "long-to-float", _WIDE, _FLOAT)
+OP_END
+
+/* File: c/OP_LONG_TO_DOUBLE.cpp */
+HANDLE_NUMCONV(OP_LONG_TO_DOUBLE,       "long-to-double", _WIDE, _DOUBLE)
+OP_END
+
+/* File: c/OP_FLOAT_TO_INT.cpp */
+HANDLE_FLOAT_TO_INT(OP_FLOAT_TO_INT,    "float-to-int",
+                float, _FLOAT, s4, _INT)
+OP_END
+
+/* File: c/OP_FLOAT_TO_LONG.cpp */
+HANDLE_FLOAT_TO_INT(OP_FLOAT_TO_LONG,   "float-to-long",
+                float, _FLOAT, s8, _WIDE)
+OP_END
+
+/* File: c/OP_FLOAT_TO_DOUBLE.cpp */
+HANDLE_NUMCONV(OP_FLOAT_TO_DOUBLE,      "float-to-double", _FLOAT, _DOUBLE)
+OP_END
+
+/* File: c/OP_DOUBLE_TO_INT.cpp */
+HANDLE_FLOAT_TO_INT(OP_DOUBLE_TO_INT,   "double-to-int",
+                double, _DOUBLE, s4, _INT)
+OP_END
+
+/* File: c/OP_DOUBLE_TO_LONG.cpp */
+HANDLE_FLOAT_TO_INT(OP_DOUBLE_TO_LONG,  "double-to-long",
+                double, _DOUBLE, s8, _WIDE)
+OP_END
+
+/* File: c/OP_DOUBLE_TO_FLOAT.cpp */
+HANDLE_NUMCONV(OP_DOUBLE_TO_FLOAT,      "double-to-float", _DOUBLE, _FLOAT)
+OP_END
+
+/* File: c/OP_INT_TO_BYTE.cpp */
+HANDLE_INT_TO_SMALL(OP_INT_TO_BYTE,     "byte", s1)
+OP_END
+
+/* File: c/OP_INT_TO_CHAR.cpp */
+HANDLE_INT_TO_SMALL(OP_INT_TO_CHAR,     "char", u2)
+OP_END
+
+/* File: c/OP_INT_TO_SHORT.cpp */
+HANDLE_INT_TO_SMALL(OP_INT_TO_SHORT,    "short", s2)    /* want sign bit */
+OP_END
+
+/* File: c/OP_ADD_INT.cpp */
+HANDLE_OP_X_INT(OP_ADD_INT, "add", +, 0)
+OP_END
+
+/* File: c/OP_SUB_INT.cpp */
+HANDLE_OP_X_INT(OP_SUB_INT, "sub", -, 0)
+OP_END
+
+/* File: c/OP_MUL_INT.cpp */
+HANDLE_OP_X_INT(OP_MUL_INT, "mul", *, 0)
+OP_END
+
+/* File: c/OP_DIV_INT.cpp */
+HANDLE_OP_X_INT(OP_DIV_INT, "div", /, 1)
+OP_END
+
+/* File: c/OP_REM_INT.cpp */
+HANDLE_OP_X_INT(OP_REM_INT, "rem", %, 2)
+OP_END
+
+/* File: c/OP_AND_INT.cpp */
+HANDLE_OP_X_INT(OP_AND_INT, "and", &, 0)
+OP_END
+
+/* File: c/OP_OR_INT.cpp */
+HANDLE_OP_X_INT(OP_OR_INT,  "or",  |, 0)
+OP_END
+
+/* File: c/OP_XOR_INT.cpp */
+HANDLE_OP_X_INT(OP_XOR_INT, "xor", ^, 0)
+OP_END
+
+/* File: c/OP_SHL_INT.cpp */
+HANDLE_OP_SHX_INT(OP_SHL_INT, "shl", (s4), <<)
+OP_END
+
+/* File: c/OP_SHR_INT.cpp */
+HANDLE_OP_SHX_INT(OP_SHR_INT, "shr", (s4), >>)
+OP_END
+
+/* File: c/OP_USHR_INT.cpp */
+HANDLE_OP_SHX_INT(OP_USHR_INT, "ushr", (u4), >>)
+OP_END
+
+/* File: c/OP_ADD_LONG.cpp */
+HANDLE_OP_X_LONG(OP_ADD_LONG, "add", +, 0)
+OP_END
+
+/* File: c/OP_SUB_LONG.cpp */
+HANDLE_OP_X_LONG(OP_SUB_LONG, "sub", -, 0)
+OP_END
+
+/* File: c/OP_MUL_LONG.cpp */
+HANDLE_OP_X_LONG(OP_MUL_LONG, "mul", *, 0)
+OP_END
+
+/* File: c/OP_DIV_LONG.cpp */
+HANDLE_OP_X_LONG(OP_DIV_LONG, "div", /, 1)
+OP_END
+
+/* File: c/OP_REM_LONG.cpp */
+HANDLE_OP_X_LONG(OP_REM_LONG, "rem", %, 2)
+OP_END
+
+/* File: c/OP_AND_LONG.cpp */
+HANDLE_OP_X_LONG(OP_AND_LONG, "and", &, 0)
+OP_END
+
+/* File: c/OP_OR_LONG.cpp */
+HANDLE_OP_X_LONG(OP_OR_LONG,  "or", |, 0)
+OP_END
+
+/* File: c/OP_XOR_LONG.cpp */
+HANDLE_OP_X_LONG(OP_XOR_LONG, "xor", ^, 0)
+OP_END
+
+/* File: c/OP_SHL_LONG.cpp */
+HANDLE_OP_SHX_LONG(OP_SHL_LONG, "shl", (s8), <<)
+OP_END
+
+/* File: c/OP_SHR_LONG.cpp */
+HANDLE_OP_SHX_LONG(OP_SHR_LONG, "shr", (s8), >>)
+OP_END
+
+/* File: c/OP_USHR_LONG.cpp */
+HANDLE_OP_SHX_LONG(OP_USHR_LONG, "ushr", (u8), >>)
+OP_END
+
+/* File: c/OP_ADD_FLOAT.cpp */
+HANDLE_OP_X_FLOAT(OP_ADD_FLOAT, "add", +)
+OP_END
+
+/* File: c/OP_SUB_FLOAT.cpp */
+HANDLE_OP_X_FLOAT(OP_SUB_FLOAT, "sub", -)
+OP_END
+
+/* File: c/OP_MUL_FLOAT.cpp */
+HANDLE_OP_X_FLOAT(OP_MUL_FLOAT, "mul", *)
+OP_END
+
+/* File: c/OP_DIV_FLOAT.cpp */
+HANDLE_OP_X_FLOAT(OP_DIV_FLOAT, "div", /)
+OP_END
+
+/* File: c/OP_REM_FLOAT.cpp */
+HANDLE_OPCODE(OP_REM_FLOAT /*vAA, vBB, vCC*/)
+{
+    u2 srcRegs;
+    vdst = INST_AA(inst);
+    srcRegs = FETCH(1);
+    vsrc1 = srcRegs & 0xff;
+    vsrc2 = srcRegs >> 8;
+    MY_LOG_INFO("|%s-float v%d,v%d,v%d", "mod", vdst, vsrc1, vsrc2);
+    SET_REGISTER_FLOAT(vdst,
+                       fmodf(GET_REGISTER_FLOAT(vsrc1), GET_REGISTER_FLOAT(vsrc2)));
+}
+FINISH(2);
+OP_END
+
+/* File: c/OP_ADD_DOUBLE.cpp */
+HANDLE_OP_X_DOUBLE(OP_ADD_DOUBLE, "add", +)
+OP_END
+
+/* File: c/OP_SUB_DOUBLE.cpp */
+HANDLE_OP_X_DOUBLE(OP_SUB_DOUBLE, "sub", -)
+OP_END
+
+/* File: c/OP_MUL_DOUBLE.cpp */
+HANDLE_OP_X_DOUBLE(OP_MUL_DOUBLE, "mul", *)
+OP_END
+
+/* File: c/OP_DIV_DOUBLE.cpp */
+HANDLE_OP_X_DOUBLE(OP_DIV_DOUBLE, "div", /)
+OP_END
+
+/* File: c/OP_REM_DOUBLE.cpp */
+HANDLE_OPCODE(OP_REM_DOUBLE /*vAA, vBB, vCC*/)
+{
+    u2 srcRegs;
+    vdst = INST_AA(inst);
+    srcRegs = FETCH(1);
+    vsrc1 = srcRegs & 0xff;
+    vsrc2 = srcRegs >> 8;
+    MY_LOG_INFO("|%s-double v%d,v%d,v%d", "mod", vdst, vsrc1, vsrc2);
+    SET_REGISTER_DOUBLE(vdst,
+                        fmod(GET_REGISTER_DOUBLE(vsrc1), GET_REGISTER_DOUBLE(vsrc2)));
+}
+FINISH(2);
+OP_END
+
+/* File: c/OP_ADD_INT_2ADDR.cpp */
+HANDLE_OP_X_INT_2ADDR(OP_ADD_INT_2ADDR, "add", +, 0)
+OP_END
+
+/* File: c/OP_SUB_INT_2ADDR.cpp */
+HANDLE_OP_X_INT_2ADDR(OP_SUB_INT_2ADDR, "sub", -, 0)
+OP_END
+
+/* File: c/OP_MUL_INT_2ADDR.cpp */
+HANDLE_OP_X_INT_2ADDR(OP_MUL_INT_2ADDR, "mul", *, 0)
+OP_END
+
+/* File: c/OP_DIV_INT_2ADDR.cpp */
+HANDLE_OP_X_INT_2ADDR(OP_DIV_INT_2ADDR, "div", /, 1)
+OP_END
+
+/* File: c/OP_REM_INT_2ADDR.cpp */
+HANDLE_OP_X_INT_2ADDR(OP_REM_INT_2ADDR, "rem", %, 2)
+OP_END
+
+/* File: c/OP_AND_INT_2ADDR.cpp */
+HANDLE_OP_X_INT_2ADDR(OP_AND_INT_2ADDR, "and", &, 0)
+OP_END
+
+/* File: c/OP_OR_INT_2ADDR.cpp */
+HANDLE_OP_X_INT_2ADDR(OP_OR_INT_2ADDR,  "or", |, 0)
+OP_END
+
+/* File: c/OP_XOR_INT_2ADDR.cpp */
+HANDLE_OP_X_INT_2ADDR(OP_XOR_INT_2ADDR, "xor", ^, 0)
+OP_END
+
+/* File: c/OP_SHL_INT_2ADDR.cpp */
+HANDLE_OP_SHX_INT_2ADDR(OP_SHL_INT_2ADDR, "shl", (s4), <<)
+OP_END
+
+/* File: c/OP_SHR_INT_2ADDR.cpp */
+HANDLE_OP_SHX_INT_2ADDR(OP_SHR_INT_2ADDR, "shr", (s4), >>)
+OP_END
+
+/* File: c/OP_USHR_INT_2ADDR.cpp */
+HANDLE_OP_SHX_INT_2ADDR(OP_USHR_INT_2ADDR, "ushr", (u4), >>)
+OP_END
+
+/* File: c/OP_ADD_LONG_2ADDR.cpp */
+HANDLE_OP_X_LONG_2ADDR(OP_ADD_LONG_2ADDR, "add", +, 0)
+OP_END
+
+/* File: c/OP_SUB_LONG_2ADDR.cpp */
+HANDLE_OP_X_LONG_2ADDR(OP_SUB_LONG_2ADDR, "sub", -, 0)
+OP_END
+
+/* File: c/OP_MUL_LONG_2ADDR.cpp */
+HANDLE_OP_X_LONG_2ADDR(OP_MUL_LONG_2ADDR, "mul", *, 0)
+OP_END
+
+/* File: c/OP_DIV_LONG_2ADDR.cpp */
+HANDLE_OP_X_LONG_2ADDR(OP_DIV_LONG_2ADDR, "div", /, 1)
+OP_END
+
+/* File: c/OP_REM_LONG_2ADDR.cpp */
+HANDLE_OP_X_LONG_2ADDR(OP_REM_LONG_2ADDR, "rem", %, 2)
+OP_END
+
+/* File: c/OP_AND_LONG_2ADDR.cpp */
+HANDLE_OP_X_LONG_2ADDR(OP_AND_LONG_2ADDR, "and", &, 0)
+OP_END
+
+/* File: c/OP_OR_LONG_2ADDR.cpp */
+HANDLE_OP_X_LONG_2ADDR(OP_OR_LONG_2ADDR,  "or", |, 0)
+OP_END
+
+/* File: c/OP_XOR_LONG_2ADDR.cpp */
+HANDLE_OP_X_LONG_2ADDR(OP_XOR_LONG_2ADDR, "xor", ^, 0)
+OP_END
+
+/* File: c/OP_SHL_LONG_2ADDR.cpp */
+HANDLE_OP_SHX_LONG_2ADDR(OP_SHL_LONG_2ADDR, "shl", (s8), <<)
+OP_END
+
+/* File: c/OP_SHR_LONG_2ADDR.cpp */
+HANDLE_OP_SHX_LONG_2ADDR(OP_SHR_LONG_2ADDR, "shr", (s8), >>)
+OP_END
+
+/* File: c/OP_USHR_LONG_2ADDR.cpp */
+HANDLE_OP_SHX_LONG_2ADDR(OP_USHR_LONG_2ADDR, "ushr", (u8), >>)
+OP_END
+
+/* File: c/OP_ADD_FLOAT_2ADDR.cpp */
+HANDLE_OP_X_FLOAT_2ADDR(OP_ADD_FLOAT_2ADDR, "add", +)
+OP_END
+
+/* File: c/OP_SUB_FLOAT_2ADDR.cpp */
+HANDLE_OP_X_FLOAT_2ADDR(OP_SUB_FLOAT_2ADDR, "sub", -)
+OP_END
+
+/* File: c/OP_MUL_FLOAT_2ADDR.cpp */
+HANDLE_OP_X_FLOAT_2ADDR(OP_MUL_FLOAT_2ADDR, "mul", *)
+OP_END
+
+/* File: c/OP_DIV_FLOAT_2ADDR.cpp */
+HANDLE_OP_X_FLOAT_2ADDR(OP_DIV_FLOAT_2ADDR, "div", /)
+OP_END
+
+/* File: c/OP_REM_FLOAT_2ADDR.cpp */
+HANDLE_OPCODE(OP_REM_FLOAT_2ADDR /*vA, vB*/)
+vdst = INST_A(inst);
+vsrc1 = INST_B(inst);
+MY_LOG_INFO("|%s-float-2addr v%d,v%d", "mod", vdst, vsrc1);
+SET_REGISTER_FLOAT(vdst,
+                   fmodf(GET_REGISTER_FLOAT(vdst), GET_REGISTER_FLOAT(vsrc1)));
+FINISH(1);
+OP_END
+
+/* File: c/OP_ADD_DOUBLE_2ADDR.cpp */
+HANDLE_OP_X_DOUBLE_2ADDR(OP_ADD_DOUBLE_2ADDR, "add", +)
+OP_END
+
+/* File: c/OP_SUB_DOUBLE_2ADDR.cpp */
+HANDLE_OP_X_DOUBLE_2ADDR(OP_SUB_DOUBLE_2ADDR, "sub", -)
+OP_END
+
+/* File: c/OP_MUL_DOUBLE_2ADDR.cpp */
+HANDLE_OP_X_DOUBLE_2ADDR(OP_MUL_DOUBLE_2ADDR, "mul", *)
+OP_END
+
+/* File: c/OP_DIV_DOUBLE_2ADDR.cpp */
+HANDLE_OP_X_DOUBLE_2ADDR(OP_DIV_DOUBLE_2ADDR, "div", /)
+OP_END
+
+/* File: c/OP_REM_DOUBLE_2ADDR.cpp */
+HANDLE_OPCODE(OP_REM_DOUBLE_2ADDR /*vA, vB*/)
+vdst = INST_A(inst);
+vsrc1 = INST_B(inst);
+    MY_LOG_INFO("|%s-double-2addr v%d,v%d", "mod", vdst, vsrc1);
+SET_REGISTER_DOUBLE(vdst,
+                    fmod(GET_REGISTER_DOUBLE(vdst), GET_REGISTER_DOUBLE(vsrc1)));
+FINISH(1);
+OP_END
+
+/* File: c/OP_ADD_INT_LIT16.cpp */
+HANDLE_OP_X_INT_LIT16(OP_ADD_INT_LIT16, "add", +, 0)
+OP_END
+
+/* File: c/OP_RSUB_INT.cpp */
+HANDLE_OPCODE(OP_RSUB_INT /*vA, vB, #+CCCC*/)
+{
+    vdst = INST_A(inst);
+    vsrc1 = INST_B(inst);
+    vsrc2 = FETCH(1);
+    MY_LOG_INFO("|rsub-int v%d,v%d,#+0x%04x", vdst, vsrc1, vsrc2);
+    SET_REGISTER(vdst, (s2) vsrc2 - (s4) GET_REGISTER(vsrc1));
+}
+FINISH(2);
+OP_END
 
 /* File: c/OP_MUL_INT_LIT16.cpp */
 HANDLE_OP_X_INT_LIT16(OP_MUL_INT_LIT16, "mul", *, 0)
@@ -2301,35 +2868,189 @@ OP_END
 /* File: c/OP_USHR_INT_LIT8.cpp */
 HANDLE_OP_SHX_INT_LIT8(OP_USHR_INT_LIT8,  "ushr", (u4), >>)
 
-HANDLE_OPCODE(OP_IGET_VOLATILE)
-HANDLE_OPCODE(OP_IPUT_VOLATILE)
-HANDLE_OPCODE(OP_SGET_VOLATILE)
-HANDLE_OPCODE(OP_SPUT_VOLATILE)
-HANDLE_OPCODE(OP_IGET_OBJECT_VOLATILE)
-HANDLE_OPCODE(OP_IGET_WIDE_VOLATILE)
-HANDLE_OPCODE(OP_IPUT_WIDE_VOLATILE)
-HANDLE_OPCODE(OP_SGET_WIDE_VOLATILE)
-HANDLE_OPCODE(OP_SPUT_WIDE_VOLATILE)
+HANDLE_IGET_X(OP_IGET_VOLATILE,         "-volatile", IntVolatile, )
+OP_END
+
+/* File: c/OP_IPUT_VOLATILE.cpp */
+HANDLE_IPUT_X(OP_IPUT_VOLATILE,         "-volatile", IntVolatile, )
+OP_END
+
+/* File: c/OP_SGET_VOLATILE.cpp */
+HANDLE_SGET_X(OP_SGET_VOLATILE,         "-volatile", IntVolatile, )
+OP_END
+
+/* File: c/OP_SPUT_VOLATILE.cpp */
+HANDLE_SPUT_X(OP_SPUT_VOLATILE,         "-volatile", IntVolatile, )
+OP_END
+
+/* File: c/OP_IGET_OBJECT_VOLATILE.cpp */
+HANDLE_IGET_X(OP_IGET_OBJECT_VOLATILE,  "-object-volatile", ObjectVolatile, _AS_OBJECT)
+OP_END
+
+/* File: c/OP_IGET_WIDE_VOLATILE.cpp */
+HANDLE_IGET_X(OP_IGET_WIDE_VOLATILE,    "-wide-volatile", LongVolatile, _WIDE)
+OP_END
+
+/* File: c/OP_IPUT_WIDE_VOLATILE.cpp */
+HANDLE_IPUT_X(OP_IPUT_WIDE_VOLATILE,    "-wide-volatile", LongVolatile, _WIDE)
+OP_END
+
+/* File: c/OP_SGET_WIDE_VOLATILE.cpp */
+HANDLE_SGET_X(OP_SGET_WIDE_VOLATILE,    "-wide-volatile", LongVolatile, _WIDE)
+OP_END
+
+/* File: c/OP_SPUT_WIDE_VOLATILE.cpp */
+HANDLE_SPUT_X(OP_SPUT_WIDE_VOLATILE,    "-wide-volatile", LongVolatile, _WIDE)
+OP_END
 HANDLE_OPCODE(OP_BREAKPOINT)
+{
+    /*
+     * Restart this instruction with the original opcode.  We do
+     * this by simply jumping to the handler.
+     *
+     * It's probably not necessary to update "inst", but we do it
+     * for the sake of anything that needs to do disambiguation in a
+     * common handler with INST_INST.
+     *
+     * The breakpoint itself is handled over in updateDebugger(),
+     * because we need to detect other events (method entry, single
+     * step) and report them in the same event packet, and we're not
+     * yet handling those through breakpoint instructions.  By the
+     * time we get here, the breakpoint has already been handled and
+     * the thread resumed.
+     */
+    u1 originalOpcode = dvmGetOriginalOpcode(pc);
+    MY_LOG_INFO("+++ break 0x%02x (0x%04x -> 0x%04x)", originalOpcode, inst,
+          INST_REPLACE_OP(inst, originalOpcode));
+    inst = INST_REPLACE_OP(inst, originalOpcode);
+    FINISH_BKPT(originalOpcode);
+}
+OP_END
 HANDLE_OPCODE(OP_THROW_VERIFICATION_ERROR)
-HANDLE_OPCODE(OP_EXECUTE_INLINE)
+EXPORT_PC();
+vsrc1 = INST_AA(inst);
+ref = FETCH(1);             /* class/field/method ref */
+dvmThrowVerificationError(curMethod, vsrc1, ref);
+GOTO_exceptionThrown();
+OP_END
+HANDLE_OPCODE(OP_EXECUTE_INLINE /*vB, {vD, vE, vF, vG}, inline@CCCC*/)
+{
+    /*
+     * This has the same form as other method calls, but we ignore
+     * the 5th argument (vA).  This is chiefly because the first four
+     * arguments to a function on ARM are in registers.
+     *
+     * We only set the arguments that are actually used, leaving
+     * the rest uninitialized.  We're assuming that, if the method
+     * needs them, they'll be specified in the call.
+     *
+     * However, this annoys gcc when optimizations are enabled,
+     * causing a "may be used uninitialized" warning.  Quieting
+     * the warnings incurs a slight penalty (5%: 373ns vs. 393ns
+     * on empty method).  Note that valgrind is perfectly happy
+     * either way as the uninitialiezd values are never actually
+     * used.
+     */
+    u4 arg0, arg1, arg2, arg3;
+    arg0 = arg1 = arg2 = arg3 = 0;
+
+    EXPORT_PC();
+
+    vsrc1 = INST_B(inst);       /* #of args */
+    ref = FETCH(1);             /* inline call "ref" */
+    vdst = FETCH(2);            /* 0-4 register indices */
+    MY_LOG_INFO("|execute-inline args=%d @%d {regs=0x%04x}",
+          vsrc1, ref, vdst);
+
+    assert((vdst >> 16) == 0);  // 16-bit type -or- high 16 bits clear
+    assert(vsrc1 <= 4);
+
+    switch (vsrc1) {
+        case 4:
+            arg3 = GET_REGISTER(vdst >> 12);
+            /* fall through */
+        case 3:
+            arg2 = GET_REGISTER((vdst & 0x0f00) >> 8);
+            /* fall through */
+        case 2:
+            arg1 = GET_REGISTER((vdst & 0x00f0) >> 4);
+            /* fall through */
+        case 1:
+            arg0 = GET_REGISTER(vdst & 0x0f);
+            /* fall through */
+        default:        // case 0
+            ;
+    }
+
+    if (dvmThreadSelfHook()->interpBreak.ctl.subMode & kSubModeDebugProfile) {
+        if (!dvmPerformInlineOp4Dbg(arg0, arg1, arg2, arg3, &retval, ref))
+            GOTO_exceptionThrown();
+    } else {
+        if (!dvmPerformInlineOp4Std(arg0, arg1, arg2, arg3, &retval, ref))
+            GOTO_exceptionThrown();
+    }
+}
+FINISH(3);
+OP_END
 HANDLE_OPCODE(OP_EXECUTE_INLINE_RANGE)
 HANDLE_OPCODE(OP_INVOKE_OBJECT_INIT_RANGE)
-HANDLE_OPCODE(OP_RETURN_VOID_BARRIER)
-HANDLE_OPCODE(OP_IGET_QUICK)
-HANDLE_OPCODE(OP_IGET_WIDE_QUICK)
-HANDLE_OPCODE(OP_IGET_OBJECT_QUICK)
-HANDLE_OPCODE(OP_IPUT_QUICK)
-HANDLE_OPCODE(OP_IPUT_WIDE_QUICK)
-HANDLE_OPCODE(OP_IPUT_OBJECT_QUICK)
+HANDLE_OPCODE(OP_RETURN_VOID_BARRIER /**/)
+MY_LOG_INFO("|return-void");
+#ifndef NDEBUG
+retval.j = 0xababababULL;   /* placate valgrind */
+#endif
+ANDROID_MEMBAR_STORE();
+GOTO_returnFromMethod();
+OP_END
+/* File: c/OP_IGET_QUICK.cpp */
+HANDLE_IGET_X_QUICK(OP_IGET_QUICK,          "", Int, )
+OP_END
+
+/* File: c/OP_IGET_WIDE_QUICK.cpp */
+HANDLE_IGET_X_QUICK(OP_IGET_WIDE_QUICK,     "-wide", Long, _WIDE)
+OP_END
+
+/* File: c/OP_IGET_OBJECT_QUICK.cpp */
+HANDLE_IGET_X_QUICK(OP_IGET_OBJECT_QUICK,   "-object", Object, _AS_OBJECT)
+OP_END
+
+/* File: c/OP_IPUT_QUICK.cpp */
+HANDLE_IPUT_X_QUICK(OP_IPUT_QUICK,          "", Int, )
+OP_END
+
+/* File: c/OP_IPUT_WIDE_QUICK.cpp */
+HANDLE_IPUT_X_QUICK(OP_IPUT_WIDE_QUICK,     "-wide", Long, _WIDE)
+OP_END
+
+/* File: c/OP_IPUT_OBJECT_QUICK.cpp */
+HANDLE_IPUT_X_QUICK(OP_IPUT_OBJECT_QUICK,   "-object", Object, _AS_OBJECT)
+OP_END
+
 HANDLE_OPCODE(OP_INVOKE_VIRTUAL_QUICK)
 HANDLE_OPCODE(OP_INVOKE_VIRTUAL_QUICK_RANGE)
 HANDLE_OPCODE(OP_INVOKE_SUPER_QUICK)
 HANDLE_OPCODE(OP_INVOKE_SUPER_QUICK_RANGE)
-HANDLE_OPCODE(OP_IPUT_OBJECT_VOLATILE)
-HANDLE_OPCODE(OP_SGET_OBJECT_VOLATILE)
-HANDLE_OPCODE(OP_SPUT_OBJECT_VOLATILE)
+/* File: c/OP_IPUT_OBJECT_VOLATILE.cpp */
+HANDLE_IPUT_X(OP_IPUT_OBJECT_VOLATILE,  "-object-volatile", ObjectVolatile, _AS_OBJECT)
+OP_END
+
+/* File: c/OP_SGET_OBJECT_VOLATILE.cpp */
+HANDLE_SGET_X(OP_SGET_OBJECT_VOLATILE,  "-object-volatile", ObjectVolatile, _AS_OBJECT)
+OP_END
+
+/* File: c/OP_SPUT_OBJECT_VOLATILE.cpp */
+HANDLE_SPUT_X(OP_SPUT_OBJECT_VOLATILE,  "-object-volatile", ObjectVolatile, _AS_OBJECT)
+OP_END
+
+/* File: c/OP_UNUSED_FF.cpp */
 HANDLE_OPCODE(OP_UNUSED_FF)
+/*
+ * In portable interp, most unused opcodes will fall through to here.
+ */
+MY_LOG_INFO("unknown opcode 0x%02x\n", INST_INST(inst));
+dvmAbort();
+FINISH(1);
+OP_END
 GOTO_TARGET(filledNewArray, bool methodCallRange, bool)
 {
     ClassObject* arrayClass;
