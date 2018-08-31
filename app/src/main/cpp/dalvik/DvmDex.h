@@ -54,4 +54,10 @@ INLINE struct ClassObject* dvmDexGetResolvedClass(const DvmDex* pDvmDex,
     assert(classIdx < pDvmDex->pHeader->typeIdsSize);
     return pDvmDex->pResClasses[classIdx];
 }
+INLINE struct Method* dvmDexGetResolvedMethod(const DvmDex* pDvmDex,
+                                              u4 methodIdx)
+{
+    assert(methodIdx < pDvmDex->pHeader->methodIdsSize);
+    return pDvmDex->pResMethods[methodIdx];
+}
 #endif //CUSTOMAPPVMP_DVMDEX_H

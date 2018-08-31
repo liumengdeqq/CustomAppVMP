@@ -17,6 +17,10 @@ bool initResolveFuction(void * dvm_hand,int apilevel){
         if (!dvmResolveClasshook) {
             return JNI_FALSE;
         }
+        dvmResolveMethodhook = (dvmResolveMethod_func)dlsym(dvm_hand,"dvmResolveMethod");
+        if (!dvmResolveMethodhook) {
+            return JNI_FALSE;
+        }
         return JNI_TRUE;
     } else {
         return JNI_FALSE;

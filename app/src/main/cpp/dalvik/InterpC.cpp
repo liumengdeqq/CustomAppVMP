@@ -15,6 +15,7 @@
 #include "Object.h"
 #include "ObjectInlines.h"
 #include <math.h>
+#include "Stack.h"
 //////////////////////////////////////////////////////////////////////////
 #define GOTO_TARGET_DECL(_target, ...)
 inline void dvmAbort(void) {
@@ -670,7 +671,6 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
 
 /* for this, the "args" are already in the locals */
 #define GOTO_invokeMethod(_methodCallRange, _methodToCall, _vsrc1, _vdst) goto invokeMethod;
-
 #define GOTO_bail() goto bail;
 
 /*
@@ -1310,6 +1310,7 @@ jvalue BWdvmInterpretPortable(const SeparatorData* separatorData, JNIEnv* env, j
     JValue retval;  // 返回值。
     DvmDex* methodClassDex;
     const Method* curMethod;
+    const Method* methodToCall;
     const u2* pc;   // 程序计数器。
     u4 fp[65535];   // 寄存器数组。
     u4 ref;
@@ -3144,6 +3145,289 @@ GOTO_TARGET(filledNewArray, bool methodCallRange, bool)
 }
 FINISH(3);
 GOTO_TARGET_END
+GOTO_TARGET(invokeVirtual, bool methodCallRange, bool)
+{
+    Method* baseMethod;
+    Object* thisPtr;
+
+    EXPORT_PC();
+
+    vsrc1 = INST_AA(inst);      /* AA (count) or BA (count + arg 5) */
+    ref = FETCH(1);             /* method ref */
+    vdst = FETCH(2);            /* 4 regs -or- first reg */
+
+    /*
+     * The object against which we are executing a method is always
+     * in the first argument.
+     */
+    if (methodCallRange) {
+        assert(vsrc1 > 0);
+        MY_LOG_INFO("|invoke-virtual-range args=%d @0x%04x {regs=v%d-v%d}",
+              vsrc1, ref, vdst, vdst+vsrc1-1);
+        thisPtr = (Object*) GET_REGISTER(vdst);
+    } else {
+        assert((vsrc1>>4) > 0);
+        MY_LOG_INFO("|invoke-virtual args=%d @0x%04x {regs=0x%04x %x}",
+              vsrc1 >> 4, ref, vdst, vsrc1 & 0x0f);
+        thisPtr = (Object*) GET_REGISTER(vdst & 0x0f);
+    }
+
+    if (!checkForNull(env,thisPtr))
+        GOTO_exceptionThrown();
+
+    /*
+     * Resolve the method.  This is the correct method for the static
+     * type of the object.  We also verify access permissions here.
+     */
+    baseMethod = dvmDexGetResolvedMethod(methodClassDex, ref);
+    if (baseMethod == NULL) {
+        baseMethod = dvmResolveMethodhook(curMethod->clazz, ref,METHOD_VIRTUAL);
+        if (baseMethod == NULL) {
+            MY_LOG_INFO("+ unknown method or access denied");
+            GOTO_exceptionThrown();
+        }
+    }
+
+    /*
+     * Combine the object we found with the vtable offset in the
+     * method.
+     */
+    assert(baseMethod->methodIndex < thisPtr->clazz->vtableCount);
+    methodToCall = thisPtr->clazz->vtable[baseMethod->methodIndex];
+
+#if defined(WITH_JIT) && defined(MTERP_STUB)
+    self->methodToCall = methodToCall;
+    self->callsiteClass = thisPtr->clazz;
+#endif
+
+
+    assert(!dvmIsAbstractMethod(methodToCall) ||
+           methodToCall->nativeFunc != NULL);
+
+        MY_LOG_INFO("+++ base=%s.%s virtual[%d]=%s.%s",
+          baseMethod->clazz->descriptor, baseMethod->name,
+          (u4) baseMethod->methodIndex,
+          methodToCall->clazz->descriptor, methodToCall->name);
+    assert(methodToCall != NULL);
+
+    GOTO_invokeMethod(methodCallRange, methodToCall, vsrc1, vdst);
+}
+GOTO_TARGET_END
+GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
+            u2 count, u2 regs)
+{
+    STUB_HACK(vsrc1 = count; vdst = regs; methodToCall = _methodToCall;);
+
+    //printf("range=%d call=%p count=%d regs=0x%04x\n",
+    //    methodCallRange, methodToCall, count, regs);
+    //printf(" --> %s.%s %s\n", methodToCall->clazz->descriptor,
+    //    methodToCall->name, methodToCall->shorty);
+
+    u4* outs;
+    int i;
+
+    /*
+     * Copy args.  This may corrupt vsrc1/vdst.
+     */
+    if (methodCallRange) {
+        // could use memcpy or a "Duff's device"; most functions have
+        // so few args it won't matter much
+        assert(vsrc1 <= curMethod->outsSize);
+        assert(vsrc1 == methodToCall->insSize);
+        outs = OUTS_FROM_FP(fp, vsrc1);
+        for (i = 0; i < vsrc1; i++)
+            outs[i] = GET_REGISTER(vdst+i);
+    } else {
+        u4 count = vsrc1 >> 4;
+
+        assert(count <= curMethod->outsSize);
+        assert(count == methodToCall->insSize);
+        assert(count <= 5);
+
+        outs = OUTS_FROM_FP(fp, count);
+#if 0
+        if (count == 5) {
+            outs[4] = GET_REGISTER(vsrc1 & 0x0f);
+            count--;
+        }
+        for (i = 0; i < (int) count; i++) {
+            outs[i] = GET_REGISTER(vdst & 0x0f);
+            vdst >>= 4;
+        }
+#else
+        // This version executes fewer instructions but is larger
+        // overall.  Seems to be a teensy bit faster.
+        assert((vdst >> 16) == 0);  // 16 bits -or- high 16 bits clear
+        switch (count) {
+            case 5:
+                outs[4] = GET_REGISTER(vsrc1 & 0x0f);
+            case 4:
+                outs[3] = GET_REGISTER(vdst >> 12);
+            case 3:
+                outs[2] = GET_REGISTER((vdst & 0x0f00) >> 8);
+            case 2:
+                outs[1] = GET_REGISTER((vdst & 0x00f0) >> 4);
+            case 1:
+                outs[0] = GET_REGISTER(vdst & 0x0f);
+            default:
+                ;
+        }
+#endif
+    }
+}
+
+/*
+ * (This was originally a "goto" target; I've kept it separate from the
+ * stuff above in case we want to refactor things again.)
+ *
+ * At this point, we have the arguments stored in the "outs" area of
+ * the current method's stack frame, and the method to call in
+ * "methodToCall".  Push a new stack frame.
+ */
+{
+    StackSaveArea* newSaveArea;
+    u4* newFp;
+
+    MY_LOG_INFO("> %s%s.%s %s",
+          dvmIsNativeMethod(methodToCall) ? "(NATIVE) " : "",
+          methodToCall->clazz->descriptor, methodToCall->name,
+          methodToCall->shorty);
+
+    newFp = (u4*) SAVEAREA_FROM_FP(fp) - methodToCall->registersSize;
+    newSaveArea = SAVEAREA_FROM_FP(newFp);
+
+    /* verify that we have enough space */
+    if (true) {
+        u1* bottom;
+        bottom = (u1*) newSaveArea - methodToCall->outsSize * sizeof(u4);
+        if (bottom < self->interpStackEnd) {
+            /* stack overflow */
+            MY_LOG_INFO("Stack overflow on method call (start=%p end=%p newBot=%p(%d) size=%d '%s')",
+                  self->interpStackStart, self->interpStackEnd, bottom,
+                  (u1*) fp - bottom, self->interpStackSize,
+                  methodToCall->name);
+            dvmHandleStackOverflow(self, methodToCall);
+            assert(dvmCheckException(self));
+            GOTO_exceptionThrown();
+        }
+        //ALOGD("+++ fp=%p newFp=%p newSave=%p bottom=%p",
+        //    fp, newFp, newSaveArea, bottom);
+    }
+
+#ifdef LOG_INSTR
+    if (methodToCall->registersSize > methodToCall->insSize) {
+        /*
+         * This makes valgrind quiet when we print registers that
+         * haven't been initialized.  Turn it off when the debug
+         * messages are disabled -- we want valgrind to report any
+         * used-before-initialized issues.
+         */
+        memset(newFp, 0xcc,
+            (methodToCall->registersSize - methodToCall->insSize) * 4);
+    }
+#endif
+
+#ifdef EASY_GDB
+    newSaveArea->prevSave = SAVEAREA_FROM_FP(fp);
+#endif
+    newSaveArea->prevFrame = fp;
+    newSaveArea->savedPc = pc;
+#if defined(WITH_JIT) && defined(MTERP_STUB)
+    newSaveArea->returnAddr = 0;
+#endif
+    newSaveArea->method = methodToCall;
+
+    if (self->interpBreak.ctl.subMode != 0) {
+        /*
+         * We mark ENTER here for both native and non-native
+         * calls.  For native calls, we'll mark EXIT on return.
+         * For non-native calls, EXIT is marked in the RETURN op.
+         */
+        PC_TO_SELF();
+        dvmReportInvoke(self, methodToCall);
+    }
+
+    if (!dvmIsNativeMethod(methodToCall)) {
+        /*
+         * "Call" interpreted code.  Reposition the PC, update the
+         * frame pointer and other local state, and continue.
+         */
+        curMethod = methodToCall;
+        self->interpSave.method = curMethod;
+        methodClassDex = curMethod->clazz->pDvmDex;
+        pc = methodToCall->insns;
+        fp = newFp;
+        self->interpSave.curFrame = fp;
+#ifdef EASY_GDB
+        debugSaveArea = SAVEAREA_FROM_FP(newFp);
+#endif
+        self->debugIsMethodEntry = true;        // profiling, debugging
+        MY_LOG_INFO("> pc <-- %s.%s %s", curMethod->clazz->descriptor,
+              curMethod->name, curMethod->shorty);
+//        DUMP_REGS(curMethod, fp, true);         // show input args
+        FINISH(0);                              // jump to method start
+    } else {
+        /* set this up for JNI locals, even if not a JNI native */
+        newSaveArea->xtra.localRefCookie = self->jniLocalRefTable.segmentState.all;
+
+        self->interpSave.curFrame = newFp;
+
+//        DUMP_REGS(methodToCall, newFp, true);   // show input args
+
+        if (self->interpBreak.ctl.subMode != 0) {
+            dvmReportPreNativeInvoke(methodToCall, self, newSaveArea->prevFrame);
+        }
+
+        MY_LOG_INFO("> native <-- %s.%s %s", methodToCall->clazz->descriptor,
+              methodToCall->name, methodToCall->shorty);
+
+        /*
+         * Jump through native call bridge.  Because we leave no
+         * space for locals on native calls, "newFp" points directly
+         * to the method arguments.
+         */
+        (*methodToCall->nativeFunc)(newFp, &retval, methodToCall, self);
+
+        if (dvmThreadSelfHook()->interpBreak.ctl.subMode != 0) {
+            dvmReportPostNativeInvoke(methodToCall, self, newSaveArea->prevFrame);
+        }
+
+        /* pop frame off */
+        dvmPopJniLocals(dvmThreadSelfHook(), newSaveArea);
+        dvmThreadSelfHook()->interpSave.curFrame = newSaveArea->prevFrame;
+        fp = newSaveArea->prevFrame;
+
+        /*
+         * If the native code threw an exception, or interpreted code
+         * invoked by the native call threw one and nobody has cleared
+         * it, jump to our local exception handling.
+         */
+        if (dvmCheckException(dvmThreadSelfHook())) {
+            MY_LOG_INFO("Exception thrown by/below native code");
+            GOTO_exceptionThrown();
+        }
+
+        MY_LOG_INFO("> retval=0x%llx (leaving native)", retval.j);
+        MY_LOG_INFO("> (return from native %s.%s to %s.%s %s)",
+              methodToCall->clazz->descriptor, methodToCall->name,
+              curMethod->clazz->descriptor, curMethod->name,
+              curMethod->shorty);
+
+        //u2 invokeInstr = INST_INST(FETCH(0));
+        if (true /*invokeInstr >= OP_INVOKE_VIRTUAL &&
+            invokeInstr <= OP_INVOKE_INTERFACE*/)
+        {
+            FINISH(3);
+        } else {
+            //ALOGE("Unknown invoke instr %02x at %d",
+            //    invokeInstr, (int) (pc - curMethod->insns));
+            assert(false);
+        }
+    }
+}
+assert(false);      // should not get here
+GOTO_TARGET_END
+
 // TODO 异常现在不支持。
     /*
      * Jump here when the code throws an exception.

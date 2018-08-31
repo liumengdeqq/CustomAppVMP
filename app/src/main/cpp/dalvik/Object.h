@@ -424,6 +424,9 @@ INLINE u4 dvmGetMethodInsnsSize(const Method* meth) {
     const DexCode* pCode = dvmGetMethodCode(meth);
     return (pCode == NULL) ? 0 : pCode->insnsSize;
 }
+INLINE bool dvmIsAbstractMethod(const Method* method) {
+    return (method->accessFlags & ACC_ABSTRACT) != 0;
+}
 #define IS_CLASS_FLAG_SET(clazz, flag) \
     (((clazz)->accessFlags & (flag)) != 0)
 #endif //CUSTOMAPPVMP_DEXFILE_H
