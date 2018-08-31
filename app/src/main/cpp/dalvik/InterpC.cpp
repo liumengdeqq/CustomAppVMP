@@ -7,6 +7,8 @@
 #include "Thread.h"
 #include "Sync.h"
 #include "TypeCheck.h"
+#include "Alloc.h"
+#include "Class.h"
 //////////////////////////////////////////////////////////////////////////
 
 inline void dvmAbort(void) {
@@ -984,6 +986,7 @@ jvalue BWdvmInterpretPortable(const SeparatorData* separatorData, JNIEnv* env, j
     const Method* curMethod;
     const u2* pc;   // 程序计数器。
     u4 fp[65535];   // 寄存器数组。
+    u4 ref;
     u2 inst;        // 当前指令。
     u2 vsrc1, vsrc2, vdst;      // usually used for register indexes
 
@@ -1312,12 +1315,12 @@ HANDLE_OPCODE(OP_CONST_STRING /*vAA, string@BBBB*/)
     StringObject* strObj;
 
     vdst = INST_AA(inst);
-    vsrc1 = FETCH(1);
-    MY_LOG_VERBOSE("|const-string v%d string@0x%04x", vdst, vsrc1);
-    strObj = dvmDexGetResolvedString(methodClassDex, vsrc1);
+    ref = FETCH(1);
+    MY_LOG_INFO("|const-string v%d string@0x%04x", vdst, ref);
+    strObj = dvmDexGetResolvedString(methodClassDex, ref);
     if (strObj == NULL) {
         EXPORT_PC();
-        strObj = dvmResolveStringhook(curMethod->clazz, vsrc1);
+        strObj = dvmResolveStringhook(curMethod->clazz, ref);
         if (strObj == NULL)
             GOTO_exceptionThrown();
     }
@@ -1333,7 +1336,7 @@ HANDLE_OPCODE(OP_CONST_STRING_JUMBO /*vAA, string@BBBBBBBB*/)
     vdst = INST_AA(inst);
     tmp = FETCH(1);
     tmp |= (u4)FETCH(2) << 16;
-    MY_LOG_VERBOSE("|const-string/jumbo v%d string@0x%08x", vdst, tmp);
+    MY_LOG_INFO("|const-string/jumbo v%d string@0x%08x", vdst, tmp);
     strObj = dvmDexGetResolvedString(methodClassDex, tmp);
     if (strObj == NULL) {
         EXPORT_PC();
@@ -1350,12 +1353,12 @@ HANDLE_OPCODE(OP_CONST_CLASS /*vAA, class@BBBB*/)
     ClassObject* clazz;
 
     vdst = INST_AA(inst);
-    vsrc1 = FETCH(1);
-    MY_LOG_VERBOSE("|const-class v%d class@0x%04x", vdst, vsrc1);
-    clazz = dvmDexGetResolvedClass(methodClassDex, vsrc1);
+    ref = FETCH(1);
+    MY_LOG_INFO("|const-class v%d class@0x%04x", vdst, ref);
+    clazz = dvmDexGetResolvedClass(methodClassDex, ref);
     if (clazz == NULL) {
         EXPORT_PC();
-        clazz = dvmResolveClasshook(curMethod->clazz, vsrc1, true);
+        clazz = dvmResolveClasshook(curMethod->clazz, ref, true);
         if (clazz == NULL)
             GOTO_exceptionThrown();
     }
@@ -1369,12 +1372,12 @@ HANDLE_OPCODE(OP_MONITOR_ENTER /*vAA*/)
     Object* obj;
 
     vsrc1 = INST_AA(inst);
-    MY_LOG_VERBOSE("|monitor-enter v%d %s(0x%08x)",
+    MY_LOG_INFO("|monitor-enter v%d %s(0x%08x)",
           vsrc1, kSpacing+6, GET_REGISTER(vsrc1));
     obj = (Object*)GET_REGISTER(vsrc1);
-    if (!checkForNullExportPC(env,obj,fp,pc))
+    if (!checkForNullExportPC(env,obj, fp, pc))
         GOTO_exceptionThrown();
-    MY_LOG_VERBOSE("+ locking %p %s", obj,obj->clazz->descriptor);
+    MY_LOG_INFO("+ locking %p %s", obj, obj->clazz->descriptor);
     EXPORT_PC();    /* need for precise GC */
     dvmLockObjectHook(dvmThreadSelfHook(), obj);
 }
@@ -1410,6 +1413,8 @@ HANDLE_OPCODE(OP_MONITOR_EXIT /*vAA*/)
 }
 FINISH(1);
 OP_END
+
+/* File: c/OP_CHECK_CAST.cpp */
 HANDLE_OPCODE(OP_CHECK_CAST /*vAA, class@BBBB*/)
 {
     ClassObject* clazz;
@@ -1417,9 +1422,9 @@ HANDLE_OPCODE(OP_CHECK_CAST /*vAA, class@BBBB*/)
 
     EXPORT_PC();
 
-    vdst= INST_AA(inst);
-    vsrc1= FETCH(1);         /* class to check against */
-    MY_LOG_INFO("|check-cast v%d,class@0x%04x", vsrc1, vsrc1);
+    vsrc1 = INST_AA(inst);
+    ref = FETCH(1);         /* class to check against */
+    MY_LOG_INFO("|check-cast v%d,class@0x%04x", vsrc1, ref);
 
     obj = (Object*)GET_REGISTER(vsrc1);
     if (obj != NULL) {
@@ -1427,9 +1432,9 @@ HANDLE_OPCODE(OP_CHECK_CAST /*vAA, class@BBBB*/)
         if (!checkForNull(obj))
             GOTO_exceptionThrown();
 #endif
-        clazz = dvmDexGetResolvedClass(methodClassDex, vsrc1);
+        clazz = dvmDexGetResolvedClass(methodClassDex, ref);
         if (clazz == NULL) {
-            clazz = dvmResolveClasshook(curMethod->clazz, vsrc1, false);
+            clazz = dvmResolveClasshook(curMethod->clazz, ref, false);
             if (clazz == NULL)
                 GOTO_exceptionThrown();
         }
@@ -1441,9 +1446,100 @@ HANDLE_OPCODE(OP_CHECK_CAST /*vAA, class@BBBB*/)
 }
 FINISH(2);
 OP_END
-HANDLE_OPCODE(OP_INSTANCE_OF)
-HANDLE_OPCODE(OP_ARRAY_LENGTH)
-HANDLE_OPCODE(OP_NEW_INSTANCE)
+HANDLE_OPCODE(OP_INSTANCE_OF /*vA, vB, class@CCCC*/)
+{
+    ClassObject* clazz;
+    Object* obj;
+
+    vdst = INST_A(inst);
+    vsrc1 = INST_B(inst);   /* object to check */
+    ref = FETCH(1);         /* class to check against */
+    MY_LOG_INFO("|instance-of v%d,v%d,class@0x%04x", vdst, vsrc1, ref);
+
+    obj = (Object*)GET_REGISTER(vsrc1);
+    if (obj == NULL) {
+        SET_REGISTER(vdst, 0);
+    } else {
+#if defined(WITH_EXTRA_OBJECT_VALIDATION)
+        if (!checkForNullExportPC(obj, fp, pc))
+            GOTO_exceptionThrown();
+#endif
+        clazz = dvmDexGetResolvedClass(methodClassDex, ref);
+        if (clazz == NULL) {
+            EXPORT_PC();
+            clazz = dvmResolveClasshook(curMethod->clazz, ref, true);
+            if (clazz == NULL)
+                GOTO_exceptionThrown();
+        }
+        SET_REGISTER(vdst, dvmInstanceof(obj->clazz, clazz));
+    }
+}
+FINISH(2);
+OP_END
+HANDLE_OPCODE(OP_ARRAY_LENGTH /*vA, vB*/)
+{
+    ArrayObject* arrayObj;
+
+    vdst = INST_A(inst);
+    vsrc1 = INST_B(inst);
+    arrayObj = (ArrayObject*) GET_REGISTER(vsrc1);
+    MY_LOG_INFO("|array-length v%d,v%d  (%p)", vdst, vsrc1, arrayObj);
+    if (!checkForNullExportPC(env,(Object*) arrayObj, fp, pc))
+        GOTO_exceptionThrown();
+    /* verifier guarantees this is an array reference */
+    SET_REGISTER(vdst, arrayObj->length);
+}
+FINISH(1);
+OP_END
+
+HANDLE_OPCODE(OP_NEW_INSTANCE /*vAA, class@BBBB*/)
+{
+    ClassObject* clazz;
+    Object* newObj;
+
+    EXPORT_PC();
+
+    vdst = INST_AA(inst);
+    ref = FETCH(1);
+    MY_LOG_INFO("|new-instance v%d,class@0x%04x", vdst, ref);
+    clazz = dvmDexGetResolvedClass(methodClassDex, ref);
+    if (clazz == NULL) {
+        clazz = dvmResolveClasshook(curMethod->clazz, ref, false);
+        if (clazz == NULL)
+            GOTO_exceptionThrown();
+    }
+
+    if (!dvmIsClassInitialized(clazz) && !dvmInitClassHook(clazz))
+        GOTO_exceptionThrown();
+
+#if defined(WITH_JIT)
+    /*
+     * The JIT needs dvmDexGetResolvedClass() to return non-null.
+     * Since we use the portable interpreter to build the trace, this extra
+     * check is not needed for mterp.
+     */
+    if ((self->interpBreak.ctl.subMode & kSubModeJitTraceBuild) &&
+        (!dvmDexGetResolvedClass(methodClassDex, ref))) {
+        /* Class initialization is still ongoing - end the trace */
+        dvmJitEndTraceSelect(self,pc);
+    }
+#endif
+
+    /*
+     * Verifier now tests for interface/abstract class.
+     */
+    //if (dvmIsInterfaceClass(clazz) || dvmIsAbstractClass(clazz)) {
+    //    dvmThrowExceptionWithClassMessage(gDvm.exInstantiationError,
+    //        clazz->descriptor);
+    //    GOTO_exceptionThrown();
+    //}
+    newObj = dvmAllocObjectHook(clazz, ALLOC_DONT_TRACK);
+    if (newObj == NULL)
+        GOTO_exceptionThrown();
+    SET_REGISTER(vdst, (u4) newObj);
+}
+FINISH(2);
+OP_END
 HANDLE_OPCODE(OP_NEW_ARRAY)
 HANDLE_OPCODE(OP_FILLED_NEW_ARRAY)
 HANDLE_OPCODE(OP_FILLED_NEW_ARRAY_RANGE)

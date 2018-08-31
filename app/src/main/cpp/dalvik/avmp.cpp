@@ -9,6 +9,8 @@
 #include "Thread.h"
 #include "Sync.h"
 #include "TypeCheck.h"
+#include "Alloc.h"
+#include "Class.h"
 void nativeLog(JNIEnv* env, jobject thiz) {
     MY_LOG_INFO("nativeLog, thiz=%p", thiz);
 }
@@ -69,6 +71,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     initThreadFuction(dvm_hand,16);
     initSynFuction(dvm_hand,16);
     initTypeCheckFuction(dvm_hand,16);
+    initAllocFuction(dvm_hand,16);
+    initClassFuction(dvm_hand,16);
     // ע�᱾�ط�����
     registerFunctions(env);
 
