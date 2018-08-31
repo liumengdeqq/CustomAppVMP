@@ -16,8 +16,10 @@
 #include "ObjectInlines.h"
 #include <math.h>
 #include "Stack.h"
+#include "Interp.h"
 //////////////////////////////////////////////////////////////////////////
 #define GOTO_TARGET_DECL(_target, ...)
+# define DUMP_REGS(_meth, _frame, _inOnly) dvmDumpRegs(_meth, _frame, _inOnly)
 inline void dvmAbort(void) {
     exit(1);
 }
@@ -680,9 +682,9 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
  * started.  If so, switch to a different "goto" table.
  */
 #define PERIODIC_CHECKS(_pcadj) {                              \
-        if (dvmCheckSuspendQuick(dvmThreadSelfHook())) {                                   \
+        if (dvmCheckSuspendQuick(slef)) {                                   \
             EXPORT_PC();  /* need for precise GC */                         \
-            dvmCheckSuspendPendingHook(dvmThreadSelfHook());                                   \
+            dvmCheckSuspendPendingHook(slef);                                   \
         }                                                                   \
     }
 
@@ -1318,7 +1320,7 @@ jvalue BWdvmInterpretPortable(const SeparatorData* separatorData, JNIEnv* env, j
     u2 vsrc1, vsrc2, vdst;      // usually used for register indexes
     bool methodCallRange;
     unsigned int startIndex;
-
+    Thread *self=dvmThreadSelfHook();
     // 处理参数。
     va_list args;
     va_start(args, thiz); 
@@ -1706,7 +1708,7 @@ HANDLE_OPCODE(OP_MONITOR_ENTER /*vAA*/)
         GOTO_exceptionThrown();
     MY_LOG_INFO("+ locking %p %s", obj, obj->clazz->descriptor);
     EXPORT_PC();    /* need for precise GC */
-    dvmLockObjectHook(dvmThreadSelfHook(), obj);
+    dvmLockObjectHook(slef, obj);
 }
 FINISH(1);
 OP_END
@@ -1732,8 +1734,8 @@ HANDLE_OPCODE(OP_MONITOR_EXIT /*vAA*/)
         GOTO_exceptionThrown();
     }
     MY_LOG_INFO("+ unlocking %p %s", obj, obj->clazz->descriptor);
-    if (!dvmUnlockObjectHook(dvmThreadSelfHook(), obj)) {
-        assert(dvmCheckException(dvmThreadSelfHook()));
+    if (!dvmUnlockObjectHook(slef, obj)) {
+        assert(dvmCheckException(slef));
         ADJUST_PC(1);
         GOTO_exceptionThrown();
     }
@@ -1955,7 +1957,7 @@ HANDLE_OPCODE(OP_THROW /*vAA*/)
         MY_LOG_INFO("Bad exception");
     } else {
         /* use the requested exception */
-        dvmSetException(dvmThreadSelfHook(), obj);
+        dvmSetException(slef, obj);
     }
     GOTO_exceptionThrown();
 }
@@ -2983,7 +2985,7 @@ HANDLE_OPCODE(OP_EXECUTE_INLINE /*vB, {vD, vE, vF, vG}, inline@CCCC*/)
             ;
     }
 
-    if (dvmThreadSelfHook()->interpBreak.ctl.subMode & kSubModeDebugProfile) {
+    if (slef->interpBreak.ctl.subMode & kSubModeDebugProfile) {
         if (!dvmPerformInlineOp4Dbg(arg0, arg1, arg2, arg3, &retval, ref))
             GOTO_exceptionThrown();
     } else {
@@ -3213,6 +3215,145 @@ GOTO_TARGET(invokeVirtual, bool methodCallRange, bool)
     GOTO_invokeMethod(methodCallRange, methodToCall, vsrc1, vdst);
 }
 GOTO_TARGET_END
+GOTO_TARGET(exceptionThrown)
+{
+    Object* exception;
+    int catchRelPc;
+
+    PERIODIC_CHECKS(0);
+
+    /*
+     * We save off the exception and clear the exception status.  While
+     * processing the exception we might need to load some Throwable
+     * classes, and we don't want class loader exceptions to get
+     * confused with this one.
+     */
+    assert(dvmCheckException(self));
+    exception = dvmGetException(self);
+    dvmAddTrackedAllocHook(exception, self);
+    dvmClearException(self);
+
+    MY_LOG_INFO("Handling exception %s at %s:%d",
+          exception->clazz->descriptor, curMethod->name,
+          dvmLineNumFromPChook(curMethod, pc - curMethod->insns));
+
+    /*
+     * Report the exception throw to any "subMode" watchers.
+     *
+     * TODO: if the exception was thrown by interpreted code, control
+     * fell through native, and then back to us, we will report the
+     * exception at the point of the throw and again here.  We can avoid
+     * this by not reporting exceptions when we jump here directly from
+     * the native call code above, but then we won't report exceptions
+     * that were thrown *from* the JNI code (as opposed to *through* it).
+     *
+     * The correct solution is probably to ignore from-native exceptions
+     * here, and have the JNI exception code do the reporting to the
+     * debugger.
+     */
+    if (self->interpBreak.ctl.subMode != 0) {
+        PC_FP_TO_SELF();
+        dvmReportExceptionThrowHook(self, exception);
+    }
+
+    /*
+     * We need to unroll to the catch block or the nearest "break"
+     * frame.
+     *
+     * A break frame could indicate that we have reached an intermediate
+     * native call, or have gone off the top of the stack and the thread
+     * needs to exit.  Either way, we return from here, leaving the
+     * exception raised.
+     *
+     * If we do find a catch block, we want to transfer execution to
+     * that point.
+     *
+     * Note this can cause an exception while resolving classes in
+     * the "catch" blocks.
+     */
+    catchRelPc = dvmFindCatchBlockHook(self, pc - curMethod->insns,
+                                   exception, false, (void**)(void*)&fp);
+
+    /*
+     * Restore the stack bounds after an overflow.  This isn't going to
+     * be correct in all circumstances, e.g. if JNI code devours the
+     * exception this won't happen until some other exception gets
+     * thrown.  If the code keeps pushing the stack bounds we'll end
+     * up aborting the VM.
+     *
+     * Note we want to do this *after* the call to dvmFindCatchBlock,
+     * because that may need extra stack space to resolve exception
+     * classes (e.g. through a class loader).
+     *
+     * It's possible for the stack overflow handling to cause an
+     * exception (specifically, class resolution in a "catch" block
+     * during the call above), so we could see the thread's overflow
+     * flag raised but actually be running in a "nested" interpreter
+     * frame.  We don't allow doubled-up StackOverflowErrors, so
+     * we can check for this by just looking at the exception type
+     * in the cleanup function.  Also, we won't unroll past the SOE
+     * point because the more-recent exception will hit a break frame
+     * as it unrolls to here.
+     */
+    if (self->stackOverflowed)
+        dvmCleanupStackOverflowhook(self, exception);
+
+    if (catchRelPc < 0) {
+        /* falling through to JNI code or off the bottom of the stack */
+#if DVM_SHOW_EXCEPTION >= 2
+        ALOGD("Exception %s from %s:%d not caught locally",
+            exception->clazz->descriptor, dvmGetMethodSourceFile(curMethod),
+            dvmLineNumFromPC(curMethod, pc - curMethod->insns));
+#endif
+        dvmSetException(self, exception);
+        dvmReleaseTrackedAllocHook(exception, self);
+        GOTO_bail();
+    }
+
+#if DVM_SHOW_EXCEPTION >= 3
+    {
+        const Method* catchMethod = SAVEAREA_FROM_FP(fp)->method;
+        ALOGD("Exception %s thrown from %s:%d to %s:%d",
+            exception->clazz->descriptor, dvmGetMethodSourceFile(curMethod),
+            dvmLineNumFromPC(curMethod, pc - curMethod->insns),
+            dvmGetMethodSourceFile(catchMethod),
+            dvmLineNumFromPC(catchMethod, catchRelPc));
+    }
+#endif
+
+    /*
+     * Adjust local variables to match self->interpSave.curFrame and the
+     * updated PC.
+     */
+    //fp = (u4*) self->interpSave.curFrame;
+    curMethod = SAVEAREA_FROM_FP(fp)->method;
+    self->interpSave.method = curMethod;
+    //methodClass = curMethod->clazz;
+    methodClassDex = curMethod->clazz->pDvmDex;
+    pc = curMethod->insns + catchRelPc;
+    MY_LOG_INFO("> pc <-- %s.%s %s", curMethod->clazz->descriptor,
+          curMethod->name, curMethod->shorty);
+    DUMP_REGS(curMethod, fp, false);            // show all regs
+
+    /*
+     * Restore the exception if the handler wants it.
+     *
+     * The Dalvik spec mandates that, if an exception handler wants to
+     * do something with the exception, the first instruction executed
+     * must be "move-exception".  We can pass the exception along
+     * through the thread struct, and let the move-exception instruction
+     * clear it for us.
+     *
+     * If the handler doesn't call move-exception, we don't want to
+     * finish here with an exception still pending.
+     */
+    if (INST_INST(FETCH(0)) == OP_MOVE_EXCEPTION)
+        dvmSetException(self, exception);
+
+    dvmReleaseTrackedAllocHook(exception, self);
+    FINISH(0);
+}
+GOTO_TARGET_END
 GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
             u2 count, u2 regs)
 {
@@ -3306,7 +3447,7 @@ GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
                   self->interpStackStart, self->interpStackEnd, bottom,
                   (u1*) fp - bottom, self->interpStackSize,
                   methodToCall->name);
-            dvmHandleStackOverflow(self, methodToCall);
+            dvmHandleStackOverflowhook(self, methodToCall);
             assert(dvmCheckException(self));
             GOTO_exceptionThrown();
         }
@@ -3388,13 +3529,13 @@ GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
          */
         (*methodToCall->nativeFunc)(newFp, &retval, methodToCall, self);
 
-        if (dvmThreadSelfHook()->interpBreak.ctl.subMode != 0) {
+        if (self->interpBreak.ctl.subMode != 0) {
             dvmReportPostNativeInvoke(methodToCall, self, newSaveArea->prevFrame);
         }
 
         /* pop frame off */
-        dvmPopJniLocals(dvmThreadSelfHook(), newSaveArea);
-        dvmThreadSelfHook()->interpSave.curFrame = newSaveArea->prevFrame;
+        dvmPopJniLocals(self, newSaveArea);
+        self->interpSave.curFrame = newSaveArea->prevFrame;
         fp = newSaveArea->prevFrame;
 
         /*
@@ -3402,7 +3543,7 @@ GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
          * invoked by the native call threw one and nobody has cleared
          * it, jump to our local exception handling.
          */
-        if (dvmCheckException(dvmThreadSelfHook())) {
+        if (dvmCheckException(self)) {
             MY_LOG_INFO("Exception thrown by/below native code");
             GOTO_exceptionThrown();
         }
@@ -3426,16 +3567,6 @@ GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
     }
 }
 assert(false);      // should not get here
-GOTO_TARGET_END
-
-// TODO 异常现在不支持。
-    /*
-     * Jump here when the code throws an exception.
-     *
-     * By the time we get here, the Throwable has been created and the stack
-     * trace has been saved off.
-     */
-GOTO_TARGET(exceptionThrown)
 GOTO_TARGET_END
 
 bail:

@@ -45,5 +45,13 @@ struct StackSaveArea {
 /* when calling a function, get a pointer to outs[0] */
 #define OUTS_FROM_FP(_fp, _argCount) \
     ((u4*) ((u1*)SAVEAREA_FROM_FP(_fp) - sizeof(u4) * (_argCount)))
+typedef void (*dvmHandleStackOverflow_func)(Thread* self, const Method* method);
+dvmHandleStackOverflow_func dvmHandleStackOverflowhook;
 
+typedef int (*dvmLineNumFromPC_func)(const Method* method, u4 relPc);
+dvmLineNumFromPC_func dvmLineNumFromPChook;
+
+typedef int (*dvmCleanupStackOverflow_func)(Thread* self, const Object* exception);
+dvmCleanupStackOverflow_func dvmCleanupStackOverflowhook;
+bool initStackFuction(void * dvm_hand,int apilevel);
 #endif //CUSTOMAPPVMP_STACK_H

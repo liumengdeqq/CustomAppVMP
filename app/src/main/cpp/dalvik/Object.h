@@ -427,6 +427,9 @@ INLINE u4 dvmGetMethodInsnsSize(const Method* meth) {
 INLINE bool dvmIsAbstractMethod(const Method* method) {
     return (method->accessFlags & ACC_ABSTRACT) != 0;
 }
+INLINE bool dvmIsNativeMethod(const Method* method) {
+    return (method->accessFlags & ACC_NATIVE) != 0;
+}
 #define IS_CLASS_FLAG_SET(clazz, flag) \
     (((clazz)->accessFlags & (flag)) != 0)
 #endif //CUSTOMAPPVMP_DEXFILE_H

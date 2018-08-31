@@ -21,6 +21,13 @@
 #define DALVIK_EXCEPTION_H_
 
 #include "Thread.h"
+
+typedef int (*dvmFindCatchBlock_func)(Thread* self, int relPc, Object* exception,
+                                       bool scanOnly, void** newFrame);
+dvmFindCatchBlock_func dvmFindCatchBlockHook;
+bool initExceptionFuction(void *dvm_hand,int apilevel);
+
+
 void dvmThrowNullPointerException(JNIEnv* env, const char* msg);
 
 void dvmThrowArrayIndexOutOfBoundsException(JNIEnv* env, int length, int index);
@@ -43,6 +50,12 @@ INLINE void dvmSetException(Thread* self, Object* exception)
     assert(exception != NULL);
     self->exception = exception;
 }
+INLINE Object* dvmGetException(Thread* self) {
+    return self->exception;
+}
+INLINE void dvmClearException(Thread* self) {
+    self->exception = NULL;
+}
 
 void dvmThrowArrayStoreExceptionIncompatibleElement(ClassObject* objectType,
                                                     ClassObject* arrayType)
@@ -51,4 +64,5 @@ void dvmThrowArrayStoreExceptionIncompatibleElement(ClassObject* objectType,
 //                   "%s cannot be stored in an array of type %s",
 //                   objectType, arrayType);
 }
+
 #endif  // DALVIK_EXCEPTION_H_

@@ -13,6 +13,8 @@
 #include "Class.h"
 #include "Array.h"
 #include "CardTable.h"
+#include "Stack.h"
+#include "Interp.h"
 void nativeLog(JNIEnv* env, jobject thiz) {
     MY_LOG_INFO("nativeLog, thiz=%p", thiz);
 }
@@ -77,6 +79,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     initClassFuction(dvm_hand,16);
     initArrayFuction(dvm_hand,16);
     initCarTableFuction(dvm_hand,16);
+    initStackFuction(dvm_hand,16);
+    initInterpFuction(dvm_hand,16);
+    initExceptionFuction(dvm_hand,16);
     // ע�᱾�ط�����
     registerFunctions(env);
 

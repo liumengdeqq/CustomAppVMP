@@ -11,5 +11,10 @@ enum {
 };
 typedef Object* (*dvmAllocObject_func)(ClassObject* clazz, int flags);
 dvmAllocObject_func dvmAllocObjectHook;
+
+typedef void (*dvmAddTrackedAlloc_func)(Object* obj, Thread* self);
+dvmAddTrackedAlloc_func dvmAddTrackedAllocHook;
+typedef void (*dvmReleaseTrackedAlloc_func)(Object* obj, Thread* self);
+dvmReleaseTrackedAlloc_func dvmReleaseTrackedAllocHook;
 bool initAllocFuction(void *dvm_hand,int apilevel);
 #endif //CUSTOMAPPVMP_ALLOC_H
