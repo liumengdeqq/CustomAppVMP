@@ -10,6 +10,11 @@ bool initTypeCheckFuction(void *dvm_hand,int apilevel){
         if (!dvmInstanceofNonTrivialHook) {
             return JNI_FALSE;
         }
+        dvmCanPutArrayElementHook = (dvmCanPutArrayElement_func)dlsym(dvm_hand,"dvmCanPutArrayElement");
+        if (!dvmCanPutArrayElementHook) {
+            return JNI_FALSE;
+        }
+
         return JNI_TRUE;
     } else {
         return JNI_FALSE;

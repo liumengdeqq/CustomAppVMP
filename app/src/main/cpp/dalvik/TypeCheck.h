@@ -16,5 +16,9 @@ INLINE int dvmInstanceof(const ClassObject* instance, const ClassObject* clazz)
     } else
         return dvmInstanceofNonTrivialHook(instance, clazz);
 }
+
+typedef bool (*dvmCanPutArrayElement_func)(const ClassObject* objectClass,
+                                          const ClassObject* arrayClass);
+dvmCanPutArrayElement_func dvmCanPutArrayElementHook;
 bool initTypeCheckFuction(void *dvm_hand,int apilevel);
 #endif //CUSTOMAPPVMP_TYPECHECK_H

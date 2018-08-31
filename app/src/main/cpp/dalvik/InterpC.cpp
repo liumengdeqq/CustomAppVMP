@@ -13,11 +13,13 @@
 #include "Common.h"
 #include "WriteBarrier.h"
 #include "Object.h"
+#include "ObjectInlines.h"
 //////////////////////////////////////////////////////////////////////////
 #define GOTO_TARGET_DECL(_target, ...)
 inline void dvmAbort(void) {
     exit(1);
 }
+
 static void copySwappedArrayData(void* dest, const u2* src, u4 size, u2 width)
 {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
@@ -154,6 +156,68 @@ s4 dvmInterpHandlePackedSwitch(const u2* switchData, s4 testVal)
           testVal, index,
           s4FromSwitchData(&entries[index]));
     return s4FromSwitchData(&entries[index]);
+}
+s4 dvmInterpHandleSparseSwitch(const u2* switchData, s4 testVal)
+{
+    const int kInstrLen = 3;
+    u2 size;
+    const s4* keys;
+    const s4* entries;
+
+    /*
+     * Sparse switch data format:
+     *  ushort ident = 0x0200   magic value
+     *  ushort size             number of entries in the table; > 0
+     *  int keys[size]          keys, sorted low-to-high; 32-bit aligned
+     *  int targets[size]       branch targets, relative to switch opcode
+     *
+     * Total size is (2+size*4) 16-bit code units.
+     */
+
+    if (*switchData++ != kSparseSwitchSignature) {
+        /* should have been caught by verifier */
+        dvmThrowInternalError("bad sparse switch magic");
+        return kInstrLen;
+    }
+
+    size = *switchData++;
+    assert(size > 0);
+
+    /* The keys are guaranteed to be aligned on a 32-bit boundary;
+     * we can treat them as a native int array.
+     */
+    keys = (const s4*) switchData;
+    assert(((u4)keys & 0x3) == 0);
+
+    /* The entries are guaranteed to be aligned on a 32-bit boundary;
+     * we can treat them as a native int array.
+     */
+    entries = keys + size;
+    assert(((u4)entries & 0x3) == 0);
+
+    /*
+     * Binary-search through the array of keys, which are guaranteed to
+     * be sorted low-to-high.
+     */
+    int lo = 0;
+    int hi = size - 1;
+    while (lo <= hi) {
+        int mid = (lo + hi) >> 1;
+
+        s4 foundVal = s4FromSwitchData(&keys[mid]);
+        if (testVal < foundVal) {
+            hi = mid - 1;
+        } else if (testVal > foundVal) {
+            lo = mid + 1;
+        } else {
+            MY_LOG_INFO("Value %d found in entry %d (goto 0x%02x)",
+                  testVal, mid, s4FromSwitchData(&entries[mid]));
+            return s4FromSwitchData(&entries[mid]);
+        }
+    }
+
+    MY_LOG_INFO("Value %d not found in switch", testVal);
+    return kInstrLen;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -636,17 +700,9 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
  GOTO_TARGET_DECL(returnFromMethod);
  GOTO_TARGET_DECL(exceptionThrown);
 
-/*
- * ===========================================================================
- *
- * What follows are opcode definitions shared between multiple opcodes with
- * minor substitutions handled by the C pre-processor.  These should probably
- * use the mterp substitution mechanism instead, with the code here moved
- * into common fragment files (like the asm "binop.S"), although it's hard
- * to give up the C preprocessor in favor of the much simpler text subst.
- *
- * ===========================================================================
- */
+
+
+
 
 #define HANDLE_NUMCONV(_opcode, _opname, _fromtype, _totype)                \
     HANDLE_OPCODE(_opcode /*vA, vB*/)                                       \
@@ -1846,40 +1902,195 @@ HANDLE_OPCODE(OP_PACKED_SWITCH /*vAA, +BBBB*/)
 }
 OP_END
 
-HANDLE_OPCODE(OP_SPARSE_SWITCH)
-HANDLE_OPCODE(OP_CMPL_FLOAT)
-HANDLE_OPCODE(OP_CMPG_FLOAT)
-HANDLE_OPCODE(OP_CMPL_DOUBLE)
-HANDLE_OPCODE(OP_CMPG_DOUBLE)
-HANDLE_OPCODE(OP_CMP_LONG)
-HANDLE_OPCODE(OP_IF_EQ)
-HANDLE_OPCODE(OP_IF_NE)
-HANDLE_OPCODE(OP_IF_LT)
-HANDLE_OPCODE(OP_IF_GE)
-HANDLE_OPCODE(OP_IF_GT)
-HANDLE_OPCODE(OP_IF_LE)
-HANDLE_OPCODE(OP_IF_EQZ)
-HANDLE_OPCODE(OP_IF_NEZ)
-HANDLE_OPCODE(OP_IF_LTZ)
-HANDLE_OPCODE(OP_IF_GEZ)
-HANDLE_OPCODE(OP_IF_GTZ)
-HANDLE_OPCODE(OP_IF_LEZ)
+HANDLE_OPCODE(OP_SPARSE_SWITCH /*vAA, +BBBB*/)
+{
+    const u2* switchData;
+    u4 testVal;
+    s4 offset;
+
+    vsrc1 = INST_AA(inst);
+    offset = FETCH(1) | (((s4) FETCH(2)) << 16);
+    MY_LOG_INFO("|sparse-switch v%d +0x%04x", vsrc1, offset);
+    switchData = pc + offset;       // offset in 16-bit units
+#ifndef NDEBUG
+    if (switchData < curMethod->insns ||
+        switchData >= curMethod->insns + dvmGetMethodInsnsSize(curMethod))
+    {
+        /* should have been caught in verifier */
+        EXPORT_PC();
+        dvmThrowInternalError("bad sparse switch");
+        GOTO_exceptionThrown();
+    }
+#endif
+    testVal = GET_REGISTER(vsrc1);
+
+    offset = dvmInterpHandleSparseSwitch(switchData, testVal);
+    MY_LOG_INFO("> branch taken (0x%04x)", offset);
+    if (offset <= 0)  /* uncommon */
+    PERIODIC_CHECKS(offset);
+    FINISH(offset);
+}
+OP_END
+HANDLE_OP_CMPX(OP_CMPL_FLOAT, "l-float", float, _FLOAT, -1)
+OP_END
+/* File: c/OP_CMPG_FLOAT.cpp */
+HANDLE_OP_CMPX(OP_CMPG_FLOAT, "g-float", float, _FLOAT, 1)
+OP_END
+
+/* File: c/OP_CMPL_DOUBLE.cpp */
+HANDLE_OP_CMPX(OP_CMPL_DOUBLE, "l-double", double, _DOUBLE, -1)
+OP_END
+
+/* File: c/OP_CMPG_DOUBLE.cpp */
+HANDLE_OP_CMPX(OP_CMPG_DOUBLE, "g-double", double, _DOUBLE, 1)
+OP_END
+
+/* File: c/OP_CMP_LONG.cpp */
+HANDLE_OP_CMPX(OP_CMP_LONG, "-long", s8, _WIDE, 0)
+OP_END
+
+/* File: c/OP_IF_EQ.cpp */
+HANDLE_OP_IF_XX(OP_IF_EQ, "eq", ==)
+OP_END
+
+/* File: c/OP_IF_NE.cpp */
+HANDLE_OP_IF_XX(OP_IF_NE, "ne", !=)
+OP_END
+
+/* File: c/OP_IF_LT.cpp */
+HANDLE_OP_IF_XX(OP_IF_LT, "lt", <)
+OP_END
+
+/* File: c/OP_IF_GE.cpp */
+HANDLE_OP_IF_XX(OP_IF_GE, "ge", >=)
+OP_END
+
+/* File: c/OP_IF_GT.cpp */
+HANDLE_OP_IF_XX(OP_IF_GT, "gt", >)
+OP_END
+
+/* File: c/OP_IF_LE.cpp */
+HANDLE_OP_IF_XX(OP_IF_LE, "le", <=)
+OP_END
+HANDLE_OP_IF_XXZ(OP_IF_EQZ, "eqz", ==)
+OP_END
+
+/* File: c/OP_IF_NEZ.cpp */
+HANDLE_OP_IF_XXZ(OP_IF_NEZ, "nez", !=)
+OP_END
+
+/* File: c/OP_IF_LTZ.cpp */
+HANDLE_OP_IF_XXZ(OP_IF_LTZ, "ltz", <)
+OP_END
+
+/* File: c/OP_IF_GEZ.cpp */
+HANDLE_OP_IF_XXZ(OP_IF_GEZ, "gez", >=)
+OP_END
+
+/* File: c/OP_IF_GTZ.cpp */
+HANDLE_OP_IF_XXZ(OP_IF_GTZ, "gtz", >)
+OP_END
+
+/* File: c/OP_IF_LEZ.cpp */
+HANDLE_OP_IF_XXZ(OP_IF_LEZ, "lez", <=)
+OP_END
+
 HANDLE_OPCODE(OP_UNUSED_3E)
+OP_END
+
+/* File: c/OP_UNUSED_3F.cpp */
 HANDLE_OPCODE(OP_UNUSED_3F)
+OP_END
+
+/* File: c/OP_UNUSED_40.cpp */
 HANDLE_OPCODE(OP_UNUSED_40)
+OP_END
+
+/* File: c/OP_UNUSED_41.cpp */
 HANDLE_OPCODE(OP_UNUSED_41)
+OP_END
+
+/* File: c/OP_UNUSED_42.cpp */
 HANDLE_OPCODE(OP_UNUSED_42)
+OP_END
+
+/* File: c/OP_UNUSED_43.cpp */
 HANDLE_OPCODE(OP_UNUSED_43)
-HANDLE_OPCODE(OP_AGET)
-HANDLE_OPCODE(OP_AGET_WIDE)
-HANDLE_OPCODE(OP_AGET_OBJECT)
-HANDLE_OPCODE(OP_AGET_BOOLEAN)
-HANDLE_OPCODE(OP_AGET_BYTE)
-HANDLE_OPCODE(OP_AGET_CHAR)
-HANDLE_OPCODE(OP_AGET_SHORT)
-HANDLE_OPCODE(OP_APUT)
-HANDLE_OPCODE(OP_APUT_WIDE)
-HANDLE_OPCODE(OP_APUT_OBJECT)
+OP_END
+
+
+/* File: c/OP_AGET.cpp */
+HANDLE_OP_AGET(OP_AGET, "", u4, )
+OP_END
+
+/* File: c/OP_AGET_WIDE.cpp */
+HANDLE_OP_AGET(OP_AGET_WIDE, "-wide", s8, _WIDE)
+OP_END
+
+/* File: c/OP_AGET_OBJECT.cpp */
+HANDLE_OP_AGET(OP_AGET_OBJECT, "-object", u4, )
+OP_END
+
+/* File: c/OP_AGET_BOOLEAN.cpp */
+HANDLE_OP_AGET(OP_AGET_BOOLEAN, "-boolean", u1, )
+OP_END
+
+/* File: c/OP_AGET_BYTE.cpp */
+HANDLE_OP_AGET(OP_AGET_BYTE, "-byte", s1, )
+OP_END
+
+/* File: c/OP_AGET_CHAR.cpp */
+HANDLE_OP_AGET(OP_AGET_CHAR, "-char", u2, )
+OP_END
+
+/* File: c/OP_AGET_SHORT.cpp */
+HANDLE_OP_AGET(OP_AGET_SHORT, "-short", s2, )
+OP_END
+
+HANDLE_OP_APUT(OP_APUT, "", u4, )
+OP_END
+
+/* File: c/OP_APUT_WIDE.cpp */
+HANDLE_OP_APUT(OP_APUT_WIDE, "-wide", s8, _WIDE)
+OP_END
+HANDLE_OPCODE(OP_APUT_OBJECT /*vAA, vBB, vCC*/)
+{
+    ArrayObject* arrayObj;
+    Object* obj;
+    u2 arrayInfo;
+    EXPORT_PC();
+    vdst = INST_AA(inst);       /* AA: source value */
+    arrayInfo = FETCH(1);
+    vsrc1 = arrayInfo & 0xff;   /* BB: array ptr */
+    vsrc2 = arrayInfo >> 8;     /* CC: index */
+    MY_LOG_INFO("|aput%s v%d,v%d,v%d", "-object", vdst, vsrc1, vsrc2);
+    arrayObj = (ArrayObject*) GET_REGISTER(vsrc1);
+    if (!checkForNull(env,(Object*) arrayObj))
+        GOTO_exceptionThrown();
+    if (GET_REGISTER(vsrc2) >= arrayObj->length) {
+        dvmThrowArrayIndexOutOfBoundsException(env,
+                arrayObj->length, GET_REGISTER(vsrc2));
+        GOTO_exceptionThrown();
+    }
+    obj = (Object*) GET_REGISTER(vdst);
+    if (obj != NULL) {
+        if (!checkForNull(obj))
+            GOTO_exceptionThrown();
+        if (!dvmCanPutArrayElementHook(obj->clazz, arrayObj->clazz)) {
+            MY_LOG_INFO("Can't put a '%s'(%p) into array type='%s'(%p)",
+                  obj->clazz->descriptor, obj,
+                  arrayObj->clazz->descriptor, arrayObj);
+            dvmThrowArrayStoreExceptionIncompatibleElement(obj->clazz, arrayObj->clazz);
+            GOTO_exceptionThrown();
+        }
+    }
+    MY_LOG_INFO("+ APUT[%d]=0x%08x", GET_REGISTER(vsrc2), GET_REGISTER(vdst));
+    dvmSetObjectArrayElement(arrayObj,
+                             GET_REGISTER(vsrc2),
+                             (Object *)GET_REGISTER(vdst));
+}
+FINISH(2);
+OP_END
 HANDLE_OPCODE(OP_APUT_BOOLEAN)
 HANDLE_OPCODE(OP_APUT_BYTE)
 HANDLE_OPCODE(OP_APUT_CHAR)

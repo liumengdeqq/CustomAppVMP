@@ -44,4 +44,11 @@ INLINE void dvmSetException(Thread* self, Object* exception)
     self->exception = exception;
 }
 
+void dvmThrowArrayStoreExceptionIncompatibleElement(ClassObject* objectType,
+                                                    ClassObject* arrayType)
+{
+//    throwTypeError(gDvm.exArrayStoreException,
+//                   "%s cannot be stored in an array of type %s",
+//                   objectType, arrayType);
+}
 #endif  // DALVIK_EXCEPTION_H_
