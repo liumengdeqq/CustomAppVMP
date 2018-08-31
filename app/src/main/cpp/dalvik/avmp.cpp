@@ -3,9 +3,11 @@
 #include "InterpC.h"
 #include "Globals.h"
 #include "Utils.h"
-
+#include "Resolve.h"
 #ifdef _AVMP_DEBUG_
-
+#include <dlfcn.h>
+#include "Thread.h"
+#include "Sync.h"
 void nativeLog(JNIEnv* env, jobject thiz) {
     MY_LOG_INFO("nativeLog, thiz=%p", thiz);
 }
@@ -61,7 +63,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     if (vm->GetEnv((void **)&env, JNI_VERSION_1_4) != JNI_OK) {
         return JNI_ERR;
     }
-
+    void* dvm_hand = dlopen("libdvm.so", RTLD_NOW);
+    initResolveFuction(dvm_hand,16);
+    initThreadFuction(dvm_hand,16);
+    initSynFuction(dvm_hand,16);
     // ע�᱾�ط�����
     registerFunctions(env);
 

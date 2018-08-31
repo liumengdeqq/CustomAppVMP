@@ -3,6 +3,9 @@
 #include "Exception.h"
 #include "InterpC.h"
 #include "DvmDex.h"
+#include "Resolve.h"
+#include "Thread.h"
+#include "Sync.h"
 //////////////////////////////////////////////////////////////////////////
 
 inline void dvmAbort(void) {
@@ -1313,7 +1316,7 @@ HANDLE_OPCODE(OP_CONST_STRING /*vAA, string@BBBB*/)
     strObj = dvmDexGetResolvedString(methodClassDex, vsrc1);
     if (strObj == NULL) {
         EXPORT_PC();
-        strObj = dvmResolveString(curMethod->clazz, vsrc1);
+        strObj = dvmResolveStringhook(curMethod->clazz, vsrc1);
         if (strObj == NULL)
             GOTO_exceptionThrown();
     }
@@ -1321,9 +1324,61 @@ HANDLE_OPCODE(OP_CONST_STRING /*vAA, string@BBBB*/)
 }
 FINISH(2);
 OP_END
-HANDLE_OPCODE(OP_CONST_STRING_JUMBO)
-HANDLE_OPCODE(OP_CONST_CLASS)
-HANDLE_OPCODE(OP_MONITOR_ENTER)
+HANDLE_OPCODE(OP_CONST_STRING_JUMBO /*vAA, string@BBBBBBBB*/)
+{
+    StringObject* strObj;
+    u4 tmp;
+
+    vdst = INST_AA(inst);
+    tmp = FETCH(1);
+    tmp |= (u4)FETCH(2) << 16;
+    MY_LOG_VERBOSE("|const-string/jumbo v%d string@0x%08x", vdst, tmp);
+    strObj = dvmDexGetResolvedString(methodClassDex, tmp);
+    if (strObj == NULL) {
+        EXPORT_PC();
+        strObj = dvmResolveStringhook(curMethod->clazz, tmp);
+        if (strObj == NULL)
+            GOTO_exceptionThrown();
+    }
+    SET_REGISTER(vdst, (u4) strObj);
+}
+FINISH(3);
+OP_END
+HANDLE_OPCODE(OP_CONST_CLASS /*vAA, class@BBBB*/)
+{
+    ClassObject* clazz;
+
+    vdst = INST_AA(inst);
+    vsrc1 = FETCH(1);
+    MY_LOG_VERBOSE("|const-class v%d class@0x%04x", vdst, vsrc1);
+    clazz = dvmDexGetResolvedClass(methodClassDex, vsrc1);
+    if (clazz == NULL) {
+        EXPORT_PC();
+        clazz = dvmResolveClasshook(curMethod->clazz, vsrc1, true);
+        if (clazz == NULL)
+            GOTO_exceptionThrown();
+    }
+    SET_REGISTER(vdst, (u4) clazz);
+}
+FINISH(2);
+OP_END
+
+HANDLE_OPCODE(OP_MONITOR_ENTER /*vAA*/)
+{
+    Object* obj;
+
+    vsrc1 = INST_AA(inst);
+    MY_LOG_VERBOSE("|monitor-enter v%d %s(0x%08x)",
+          vsrc1, kSpacing+6, GET_REGISTER(vsrc1));
+    obj = (Object*)GET_REGISTER(vsrc1);
+    if (!checkForNullExportPC(env,obj,fp,pc))
+        GOTO_exceptionThrown();
+    MY_LOG_VERBOSE("+ locking %p %s", obj,obj->clazz->descriptor);
+    EXPORT_PC();    /* need for precise GC */
+    dvmLockObjectHook(dvmThreadSelfHook(), obj);
+}
+FINISH(1);
+OP_END
 HANDLE_OPCODE(OP_MONITOR_EXIT)
 HANDLE_OPCODE(OP_CHECK_CAST)
 HANDLE_OPCODE(OP_INSTANCE_OF)

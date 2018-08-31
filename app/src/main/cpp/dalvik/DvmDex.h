@@ -8,6 +8,8 @@
 #include "stdafx.h"
 #include "DexFile.h"
 #include "SysUtil.h"
+#include "Inlines.h"
+#include <assert.h>
 struct DvmDex {
     /* pointer to the DexFile we're associated with */
     DexFile*            pDexFile;
@@ -40,9 +42,16 @@ struct DvmDex {
     /* lock ensuring mutual exclusion during updates */
     pthread_mutex_t     modLock;
 };
- struct StringObject* dvmDexGetResolvedString(const DvmDex* pDvmDex,
+INLINE struct StringObject* dvmDexGetResolvedString(const DvmDex* pDvmDex,
                                                     u4 stringIdx)
 {
+    assert(stringIdx < pDvmDex->pHeader->stringIdsSize);
     return pDvmDex->pResStrings[stringIdx];
+}
+INLINE struct ClassObject* dvmDexGetResolvedClass(const DvmDex* pDvmDex,
+                                                  u4 classIdx)
+{
+    assert(classIdx < pDvmDex->pHeader->typeIdsSize);
+    return pDvmDex->pResClasses[classIdx];
 }
 #endif //CUSTOMAPPVMP_DVMDEX_H

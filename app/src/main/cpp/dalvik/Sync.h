@@ -5,4 +5,8 @@
 #ifndef CUSTOMAPPVMP_SYNC_H
 #define CUSTOMAPPVMP_SYNC_H
 
+#include "Thread.h"
+typedef void* (*dvmLockObject_func)(Thread* self, Object *obj);
+dvmLockObject_func dvmLockObjectHook;
+void initSynFuction(void *dvm_hand,int apilevel);
 #endif //CUSTOMAPPVMP_SYNC_H

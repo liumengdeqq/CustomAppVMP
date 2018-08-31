@@ -62,7 +62,7 @@ union JValue {
 typedef void (*DalvikBridgeFunc)(const u4* args, JValue* pResult, const Method* method, struct Thread* self);
 struct Object {
     /* ptr to class object */
-    /*ClassObject**/void*    clazz;
+    ClassObject*    clazz;
 
     /*
      * A word containing either a "thin" lock or a "fat" monitor.  See

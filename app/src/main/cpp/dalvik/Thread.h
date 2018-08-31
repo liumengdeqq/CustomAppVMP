@@ -272,4 +272,7 @@ struct Thread {
     u4 spillRegion[MAX_SPILL_JIT_IA];
 #endif
 };
+typedef Thread* (*dvmThreadSelf_func)();
+dvmThreadSelf_func dvmThreadSelfHook;
+void initThreadFuction(void *dvm_hand,int apilevel);
 #endif //CUSTOMAPPVMP_THREAD_H
