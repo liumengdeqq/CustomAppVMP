@@ -12,6 +12,10 @@ bool initThreadFuction(void *dvm_hand,int apilevel){
         if (!dvmThreadSelfHook) {
             return JNI_FALSE;
         }
+        dvmCheckSuspendPendingHook= (dvmCheckSuspendPending_func)dlsym(dvm_hand,"dvmCheckSuspendPending");
+        if (!dvmCheckSuspendPendingHook) {
+            return JNI_FALSE;
+        }
         return JNI_TRUE;
     } else {
         return JNI_FALSE;

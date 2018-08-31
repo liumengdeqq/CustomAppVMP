@@ -12,10 +12,148 @@
 #include "Array.h"
 #include "Common.h"
 #include "WriteBarrier.h"
+#include "Object.h"
 //////////////////////////////////////////////////////////////////////////
 #define GOTO_TARGET_DECL(_target, ...)
 inline void dvmAbort(void) {
     exit(1);
+}
+static void copySwappedArrayData(void* dest, const u2* src, u4 size, u2 width)
+{
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+    memcpy(dest, src, size*width);
+#else
+    int i;
+
+    switch (width) {
+    case 1:
+        /* un-swap pairs of bytes as we go */
+        for (i = (size-1) & ~1; i >= 0; i -= 2) {
+            ((u1*)dest)[i] = ((u1*)src)[i+1];
+            ((u1*)dest)[i+1] = ((u1*)src)[i];
+        }
+        /*
+         * "src" is padded to end on a two-byte boundary, but we don't want to
+         * assume "dest" is, so we handle odd length specially.
+         */
+        if ((size & 1) != 0) {
+            ((u1*)dest)[size-1] = ((u1*)src)[size];
+        }
+        break;
+    case 2:
+        /* already swapped correctly */
+        memcpy(dest, src, size*width);
+        break;
+    case 4:
+        /* swap word halves */
+        for (i = 0; i < (int) size; i++) {
+            ((u4*)dest)[i] = (src[(i << 1) + 1] << 16) | src[i << 1];
+        }
+        break;
+    case 8:
+        /* swap word halves and words */
+        for (i = 0; i < (int) (size << 1); i += 2) {
+            ((int*)dest)[i] = (src[(i << 1) + 3] << 16) | src[(i << 1) + 2];
+            ((int*)dest)[i+1] = (src[(i << 1) + 1] << 16) | src[i << 1];
+        }
+        break;
+    default:
+        ALOGE("Unexpected width %d in copySwappedArrayData", width);
+        dvmAbort();
+        break;
+    }
+#endif
+}
+bool dvmInterpHandleFillArrayData(JNIEnv *env,ArrayObject* arrayObj, const u2* arrayData)
+{
+    u2 width;
+    u4 size;
+
+    if (arrayObj == NULL) {
+        dvmThrowNullPointerException(env,NULL);
+        return false;
+    }
+    assert (!IS_CLASS_FLAG_SET(((Object *)arrayObj)->clazz,
+                               CLASS_ISOBJECTARRAY));
+
+    /*
+     * Array data table format:
+     *  ushort ident = 0x0300   magic value
+     *  ushort width            width of each element in the table
+     *  uint   size             number of elements in the table
+     *  ubyte  data[size*width] table of data values (may contain a single-byte
+     *                          padding at the end)
+     *
+     * Total size is 4+(width * size + 1)/2 16-bit code units.
+     */
+    if (arrayData[0] != kArrayDataSignature) {
+        dvmThrowInternalError("bad array data magic");
+        return false;
+    }
+
+    width = arrayData[1];
+    size = arrayData[2] | (((u4)arrayData[3]) << 16);
+
+    if (size > arrayObj->length) {
+        dvmThrowArrayIndexOutOfBoundsException(env,arrayObj->length, size);
+        return false;
+    }
+    copySwappedArrayData(arrayObj->contents, &arrayData[4], size, width);
+    return true;
+}
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+static inline s4 s4FromSwitchData(const void* switchData) {
+    return *(s4*) switchData;
+}
+#else
+static inline s4 s4FromSwitchData(const void* switchData) {
+    u2* data = switchData;
+    return data[0] | (((s4) data[1]) << 16);
+}
+#endif
+s4 dvmInterpHandlePackedSwitch(const u2* switchData, s4 testVal)
+{
+    const int kInstrLen = 3;
+
+    /*
+     * Packed switch data format:
+     *  ushort ident = 0x0100   magic value
+     *  ushort size             number of entries in the table
+     *  int first_key           first (and lowest) switch case value
+     *  int targets[size]       branch targets, relative to switch opcode
+     *
+     * Total size is (4+size*2) 16-bit code units.
+     */
+    if (*switchData++ != kPackedSwitchSignature) {
+        /* should have been caught by verifier */
+        dvmThrowInternalError("bad packed switch magic");
+        return kInstrLen;
+    }
+
+    u2 size = *switchData++;
+    assert(size > 0);
+
+    s4 firstKey = *switchData++;
+    firstKey |= (*switchData++) << 16;
+
+    int index = testVal - firstKey;
+    if (index < 0 || index >= size) {
+        MY_LOG_INFO("Value %d not found in switch (%d-%d)",
+              testVal, firstKey, firstKey+size-1);
+        return kInstrLen;
+    }
+
+    /* The entries are guaranteed to be aligned on a 32-bit boundary;
+     * we can treat them as a native int array.
+     */
+    const s4* entries = (const s4*) switchData;
+    assert(((u4)entries & 0x3) == 0);
+
+    assert(index >= 0 && index < size);
+    MY_LOG_INFO("Value %d found in slot %d (goto 0x%02x)",
+          testVal, index,
+          s4FromSwitchData(&entries[index]));
+    return s4FromSwitchData(&entries[index]);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -477,9 +615,9 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
  * started.  If so, switch to a different "goto" table.
  */
 #define PERIODIC_CHECKS(_pcadj) {                              \
-        if (dvmCheckSuspendQuick(self)) {                                   \
+        if (dvmCheckSuspendQuick(dvmThreadSelfHook())) {                                   \
             EXPORT_PC();  /* need for precise GC */                         \
-            dvmCheckSuspendPending(self);                                   \
+            dvmCheckSuspendPendingHook(dvmThreadSelfHook());                                   \
         }                                                                   \
     }
 
@@ -1585,12 +1723,129 @@ OP_END
 HANDLE_OPCODE(OP_FILLED_NEW_ARRAY_RANGE /*{vCCCC..v(CCCC+AA-1)}, class@BBBB*/)
 GOTO_invoke(filledNewArray, true);
 OP_END
-HANDLE_OPCODE(OP_FILL_ARRAY_DATA)
-HANDLE_OPCODE(OP_THROW)
-HANDLE_OPCODE(OP_GOTO)
-HANDLE_OPCODE(OP_GOTO_16)
-HANDLE_OPCODE(OP_GOTO_32)
-HANDLE_OPCODE(OP_PACKED_SWITCH)
+HANDLE_OPCODE(OP_FILL_ARRAY_DATA)   /*vAA, +BBBBBBBB*/
+{
+    const u2* arrayData;
+    s4 offset;
+    ArrayObject* arrayObj;
+
+    EXPORT_PC();
+    vsrc1 = INST_AA(inst);
+    offset = FETCH(1) | (((s4) FETCH(2)) << 16);
+    MY_LOG_INFO("|fill-array-data v%d +0x%04x", vsrc1, offset);
+    arrayData = pc + offset;       // offset in 16-bit units
+#ifndef NDEBUG
+    if (arrayData < curMethod->insns ||
+        arrayData >= curMethod->insns + dvmGetMethodInsnsSize(curMethod))
+    {
+        /* should have been caught in verifier */
+        dvmThrowInternalError("bad fill array data");
+        GOTO_exceptionThrown();
+    }
+#endif
+    arrayObj = (ArrayObject*) GET_REGISTER(vsrc1);
+    if (!dvmInterpHandleFillArrayData(env,arrayObj, arrayData)) {
+        GOTO_exceptionThrown();
+    }
+    FINISH(3);
+}
+OP_END
+HANDLE_OPCODE(OP_THROW /*vAA*/)
+{
+    Object* obj;
+
+    /*
+     * We don't create an exception here, but the process of searching
+     * for a catch block can do class lookups and throw exceptions.
+     * We need to update the saved PC.
+     */
+    EXPORT_PC();
+
+    vsrc1 = INST_AA(inst);
+    MY_LOG_INFO("|throw v%d  (%p)", vsrc1, (void*)GET_REGISTER(vsrc1));
+    obj = (Object*) GET_REGISTER(vsrc1);
+    if (!checkForNull(env,obj)) {
+        /* will throw a null pointer exception */
+        MY_LOG_INFO("Bad exception");
+    } else {
+        /* use the requested exception */
+        dvmSetException(dvmThreadSelfHook(), obj);
+    }
+    GOTO_exceptionThrown();
+}
+OP_END
+HANDLE_OPCODE(OP_GOTO /*+AA*/)
+vdst = INST_AA(inst);
+if ((s1)vdst < 0)
+    MY_LOG_INFO("|goto -0x%02x", -((s1)vdst));
+else
+    MY_LOG_INFO("|goto +0x%02x", ((s1)vdst));
+    MY_LOG_INFO("> branch taken");
+if ((s1)vdst < 0)
+PERIODIC_CHECKS((s1)vdst);
+FINISH((s1)vdst);
+OP_END
+HANDLE_OPCODE(OP_GOTO_16 /*+AAAA*/)
+{
+    s4 offset = (s2) FETCH(1);          /* sign-extend next code unit */
+
+    if (offset < 0)
+        MY_LOG_INFO("|goto/16 -0x%04x", -offset);
+    else
+        MY_LOG_INFO("|goto/16 +0x%04x", offset);
+    MY_LOG_INFO("> branch taken");
+    if (offset < 0)
+    PERIODIC_CHECKS(offset);
+    FINISH(offset);
+}
+OP_END
+
+/* File: c/OP_GOTO_32.cpp */
+HANDLE_OPCODE(OP_GOTO_32 /*+AAAAAAAA*/)
+{
+    s4 offset = FETCH(1);               /* low-order 16 bits */
+    offset |= ((s4) FETCH(2)) << 16;    /* high-order 16 bits */
+
+    if (offset < 0)
+        MY_LOG_INFO("|goto/32 -0x%08x", -offset);
+    else
+        MY_LOG_INFO("|goto/32 +0x%08x", offset);
+    MY_LOG_INFO("> branch taken");
+    if (offset <= 0)    /* allowed to branch to self */
+    PERIODIC_CHECKS(offset);
+    FINISH(offset);
+}
+OP_END
+HANDLE_OPCODE(OP_PACKED_SWITCH /*vAA, +BBBB*/)
+{
+    const u2* switchData;
+    u4 testVal;
+    s4 offset;
+
+    vsrc1 = INST_AA(inst);
+    offset = FETCH(1) | (((s4) FETCH(2)) << 16);
+    MY_LOG_INFO("|packed-switch v%d +0x%04x", vsrc1, offset);
+    switchData = pc + offset;       // offset in 16-bit units
+#ifndef NDEBUG
+    if (switchData < curMethod->insns ||
+        switchData >= curMethod->insns + dvmGetMethodInsnsSize(curMethod))
+    {
+        /* should have been caught in verifier */
+        EXPORT_PC();
+        dvmThrowInternalError("bad packed switch");
+        GOTO_exceptionThrown();
+    }
+#endif
+    testVal = GET_REGISTER(vsrc1);
+
+    offset = dvmInterpHandlePackedSwitch(switchData, testVal);
+        MY_LOG_INFO("> branch taken (0x%04x)", offset);
+    if (offset <= 0)  /* uncommon */
+    PERIODIC_CHECKS(offset);
+    FINISH(offset);
+}
+OP_END
+
 HANDLE_OPCODE(OP_SPARSE_SWITCH)
 HANDLE_OPCODE(OP_CMPL_FLOAT)
 HANDLE_OPCODE(OP_CMPG_FLOAT)

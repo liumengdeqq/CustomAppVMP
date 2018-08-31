@@ -274,5 +274,11 @@ struct Thread {
 };
 typedef Thread* (*dvmThreadSelf_func)();
 dvmThreadSelf_func dvmThreadSelfHook;
+typedef bool (*dvmCheckSuspendPending_func)(Thread* self);
+dvmCheckSuspendPending_func dvmCheckSuspendPendingHook;
 bool initThreadFuction(void *dvm_hand,int apilevel);
+
+INLINE bool dvmCheckSuspendQuick(Thread* self) {
+    return (self->interpBreak.ctl.subMode & kSubModeSuspendPending);
+}
 #endif //CUSTOMAPPVMP_THREAD_H

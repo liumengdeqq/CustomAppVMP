@@ -385,4 +385,45 @@ struct Method {
     /* set if method was called during method profiling */
     bool            inProfile;
 };
+enum ClassFlags {
+    CLASS_ISFINALIZABLE        = (1<<31), // class/ancestor overrides finalize()
+    CLASS_ISARRAY              = (1<<30), // class is a "[*"
+    CLASS_ISOBJECTARRAY        = (1<<29), // class is a "[L*" or "[[*"
+    CLASS_ISCLASS              = (1<<28), // class is *the* class Class
+
+    CLASS_ISREFERENCE          = (1<<27), // class is a soft/weak/phantom ref
+    // only ISREFERENCE is set --> soft
+            CLASS_ISWEAKREFERENCE      = (1<<26), // class is a weak reference
+    CLASS_ISFINALIZERREFERENCE = (1<<25), // class is a finalizer reference
+    CLASS_ISPHANTOMREFERENCE   = (1<<24), // class is a phantom reference
+
+    CLASS_MULTIPLE_DEFS        = (1<<23), // DEX verifier: defs in multiple DEXs
+
+    /* unlike the others, these can be present in the optimized DEX file */
+            CLASS_ISOPTIMIZED          = (1<<17), // class may contain opt instrs
+    CLASS_ISPREVERIFIED        = (1<<16), // class has been pre-verified
+};
+
+INLINE bool dvmIsBytecodeMethod(const Method* method) {
+    return (method->accessFlags & (ACC_NATIVE | ACC_ABSTRACT)) == 0;
+}
+INLINE const DexCode* dvmGetMethodCode(const Method* meth) {
+    if (dvmIsBytecodeMethod(meth)) {
+        /*
+         * The insns field for a bytecode method actually points at
+         * &(DexCode.insns), so we can subtract back to get at the
+         * DexCode in front.
+         */
+        return (const DexCode*)
+                (((const u1*) meth->insns) - offsetof(DexCode, insns));
+    } else {
+        return NULL;
+    }
+}
+INLINE u4 dvmGetMethodInsnsSize(const Method* meth) {
+    const DexCode* pCode = dvmGetMethodCode(meth);
+    return (pCode == NULL) ? 0 : pCode->insnsSize;
+}
+#define IS_CLASS_FLAG_SET(clazz, flag) \
+    (((clazz)->accessFlags & (flag)) != 0)
 #endif //CUSTOMAPPVMP_DEXFILE_H

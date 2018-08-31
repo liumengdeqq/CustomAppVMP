@@ -38,4 +38,10 @@ void dvmThrowNegativeArraySizeException(s4 size) {
 }
 void dvmThrowRuntimeException(const char* msg);
 void dvmThrowInternalError(const char* msg);
+INLINE void dvmSetException(Thread* self, Object* exception)
+{
+    assert(exception != NULL);
+    self->exception = exception;
+}
+
 #endif  // DALVIK_EXCEPTION_H_
