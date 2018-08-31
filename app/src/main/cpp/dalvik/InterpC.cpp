@@ -2,7 +2,7 @@
 #include "DexOpcodes.h"
 #include "Exception.h"
 #include "InterpC.h"
-
+#include "DvmDex.h"
 //////////////////////////////////////////////////////////////////////////
 
 inline void dvmAbort(void) {
@@ -976,7 +976,8 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
 jvalue BWdvmInterpretPortable(const SeparatorData* separatorData, JNIEnv* env, jobject thiz, ...) {
     jvalue* params = NULL; // 参数数组。
     jvalue retval;  // 返回值。
-
+    DvmDex* methodClassDex;
+    const Method* curMethod;
     const u2* pc;   // 程序计数器。
     u4 fp[65535];   // 寄存器数组。
     u2 inst;        // 当前指令。
@@ -1302,7 +1303,24 @@ HANDLE_OPCODE(OP_CONST_WIDE_HIGH16 /*vAA, #+BBBB000000000000*/)
     SET_REGISTER_WIDE(vdst, ((u8) vsrc1) << 48);
     FINISH(2);
 OP_END
-HANDLE_OPCODE(OP_CONST_STRING)
+HANDLE_OPCODE(OP_CONST_STRING /*vAA, string@BBBB*/)
+{
+    StringObject* strObj;
+
+    vdst = INST_AA(inst);
+    vsrc1 = FETCH(1);
+    MY_LOG_VERBOSE("|const-string v%d string@0x%04x", vdst, vsrc1);
+    strObj = dvmDexGetResolvedString(methodClassDex, vsrc1);
+    if (strObj == NULL) {
+        EXPORT_PC();
+        strObj = dvmResolveString(curMethod->clazz, vsrc1);
+        if (strObj == NULL)
+            GOTO_exceptionThrown();
+    }
+    SET_REGISTER(vdst, (u4) strObj);
+}
+FINISH(2);
+OP_END
 HANDLE_OPCODE(OP_CONST_STRING_JUMBO)
 HANDLE_OPCODE(OP_CONST_CLASS)
 HANDLE_OPCODE(OP_MONITOR_ENTER)

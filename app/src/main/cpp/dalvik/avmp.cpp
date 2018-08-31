@@ -17,10 +17,10 @@ jint separatorTest(JNIEnv* env, jobject thiz, jint value) {
 }
 
 /**
- * ×¢²á±¾µØ·½·¨¡£
+ * ×¢ï¿½á±¾ï¿½Ø·ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 bool registerNatives(JNIEnv* env) {
-    const char* classDesc = "buwai/android/shell/advmptest/MainActivity";
+    const char* classDesc = "com/appvmp/MainActivity";
     const JNINativeMethod methods[] = {
         { "separatorTest", "(I)I", (void*) separatorTest },
         { "nativeLog", "()V", (void*) nativeLog }
@@ -28,7 +28,7 @@ bool registerNatives(JNIEnv* env) {
 
     jclass clazz = env->FindClass(classDesc);
     if (!clazz) {
-        MY_LOG_ERROR("not find class£º%s£¡", classDesc);
+        MY_LOG_ERROR("not find classï¿½ï¿½%sï¿½ï¿½", classDesc);
         return false;
     }
 
@@ -44,7 +44,7 @@ bool registerNatives(JNIEnv* env) {
 
 void registerFunctions(JNIEnv* env) {
     if (!registerNatives(env)) {
-        MY_LOG_ERROR("registerFunctions fail¡£");
+        MY_LOG_ERROR("registerFunctions failï¿½ï¿½");
         return;
     }
 }
@@ -62,21 +62,21 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
         return JNI_ERR;
     }
 
-    // ×¢²á±¾µØ·½·¨¡£
+    // ×¢ï¿½á±¾ï¿½Ø·ï¿½ï¿½ï¿½ï¿½ï¿½
     registerFunctions(env);
 
-    // »ñµÃapkÂ·¾¶¡£
+    // ï¿½ï¿½ï¿½apkÂ·ï¿½ï¿½ï¿½ï¿½
     gAdvmp.apkPath = GetAppPath(env);
-    MY_LOG_INFO("apk path£º%s", gAdvmp.apkPath);
+    MY_LOG_INFO("apk pathï¿½ï¿½%s", gAdvmp.apkPath);
 
-    // ÊÍ·ÅycÎÄ¼þ¡£
+    // ï¿½Í·ï¿½ycï¿½Ä¼ï¿½ï¿½ï¿½
     gAdvmp.ycSize = ReleaseYcFile(gAdvmp.apkPath, &gAdvmp.ycData);
     if (0 == gAdvmp.ycSize) {
         MY_LOG_WARNING("release Yc file fail!");
         goto _ret;
     }
 
-    // ½âÎöycÎÄ¼þ¡£
+    // ï¿½ï¿½ï¿½ï¿½ycï¿½Ä¼ï¿½ï¿½ï¿½
     gAdvmp.ycFile = new YcFile;
     if (!gAdvmp.ycFile->parse(gAdvmp.ycData, gAdvmp.ycSize)) {
         MY_LOG_WARNING("parse Yc file fail.");

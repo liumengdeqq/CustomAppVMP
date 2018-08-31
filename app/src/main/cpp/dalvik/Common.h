@@ -1,7 +1,7 @@
 #pragma once
-
+#ifndef CUSTOMAPPVMP_COMMON_H
+#define CUSTOMAPPVMP_COMMON_H
 #include <stdint.h>
-
 typedef uint8_t             u1;
 typedef uint16_t            u2;
 typedef uint32_t            u4;
@@ -10,9 +10,11 @@ typedef int8_t              s1;
 typedef int16_t             s2;
 typedef int32_t             s4;
 typedef int64_t             s8;
-
+#define HAVE_BIG_ENDIAN
 /**
- * 计算数组元素个数。只能用于数组，绝不能用于指针。
+ * 锟斤拷锟斤拷锟斤拷锟斤拷元锟截革拷锟斤拷锟斤拷只锟斤拷锟斤拷锟斤拷锟斤拷锟介，锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷指锟诫。
  */
 #define array_size(arr) (sizeof(arr)/sizeof((arr)[0]))
 
+
+#endif
