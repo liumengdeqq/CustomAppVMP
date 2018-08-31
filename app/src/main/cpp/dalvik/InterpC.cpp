@@ -1379,8 +1379,67 @@ HANDLE_OPCODE(OP_MONITOR_ENTER /*vAA*/)
 }
 FINISH(1);
 OP_END
-HANDLE_OPCODE(OP_MONITOR_EXIT)
-HANDLE_OPCODE(OP_CHECK_CAST)
+HANDLE_OPCODE(OP_MONITOR_EXIT /*vAA*/)
+{
+    Object* obj;
+
+    EXPORT_PC();
+
+    vsrc1 = INST_AA(inst);
+    MY_LOG_INFO("|monitor-exit v%d %s(0x%08x)",
+          vsrc1, kSpacing+5, GET_REGISTER(vsrc1));
+    obj = (Object*)GET_REGISTER(vsrc1);
+    if (!checkForNull(env,obj)) {
+        /*
+         * The exception needs to be processed at the *following*
+         * instruction, not the current instruction (see the Dalvik
+         * spec).  Because we're jumping to an exception handler,
+         * we're not actually at risk of skipping an instruction
+         * by doing so.
+         */
+        ADJUST_PC(1);           /* monitor-exit width is 1 */
+        GOTO_exceptionThrown();
+    }
+    MY_LOG_INFO("+ unlocking %p %s", obj, obj->clazz->descriptor);
+    if (!dvmUnlockObjectHook(dvmThreadSelfHook(), obj)) {
+        assert(dvmCheckException(dvmThreadSelfHook()));
+        ADJUST_PC(1);
+        GOTO_exceptionThrown();
+    }
+}
+FINISH(1);
+OP_END
+HANDLE_OPCODE(OP_CHECK_CAST /*vAA, class@BBBB*/)
+{
+    ClassObject* clazz;
+    Object* obj;
+
+    EXPORT_PC();
+
+    vdst= INST_AA(inst);
+    vsrc1= FETCH(1);         /* class to check against */
+    MY_LOG_INFO("|check-cast v%d,class@0x%04x", vsrc1, vsrc1);
+
+    obj = (Object*)GET_REGISTER(vsrc1);
+    if (obj != NULL) {
+#if defined(WITH_EXTRA_OBJECT_VALIDATION)
+        if (!checkForNull(obj))
+            GOTO_exceptionThrown();
+#endif
+        clazz = dvmDexGetResolvedClass(methodClassDex, vsrc1);
+        if (clazz == NULL) {
+            clazz = dvmResolveClasshook(curMethod->clazz, vsrc1, false);
+            if (clazz == NULL)
+                GOTO_exceptionThrown();
+        }
+        if (!dvmInstanceof(obj->clazz, clazz)) {
+            dvmThrowClassCastException(obj->clazz, clazz);
+            GOTO_exceptionThrown();
+        }
+    }
+}
+FINISH(2);
+OP_END
 HANDLE_OPCODE(OP_INSTANCE_OF)
 HANDLE_OPCODE(OP_ARRAY_LENGTH)
 HANDLE_OPCODE(OP_NEW_INSTANCE)

@@ -4,8 +4,19 @@
 
 #include "Sync.h"
 #include <dlfcn.h>
-void initSynFuction(void *dvm_hand,int apilevel){
-    dvmLockObjectHook = (dvmLockObject_func)dlsym(dvm_hand,"dvmLockObject");
 
-
+bool initSynFuction(void *dvm_hand,int apilevel){
+    if (dvm_hand) {
+        dvmLockObjectHook = (dvmLockObject_func)dlsym(dvm_hand,"dvmLockObject");
+        if (!dvmLockObjectHook) {
+            return JNI_FALSE;
+        }
+        dvmUnlockObjectHook= (dvmUnlockObject_func)dlsym(dvm_hand,"dvmUnlockObject");
+        if (!dvmUnlockObjectHook) {
+            return JNI_FALSE;
+        }
+        return JNI_TRUE;
+    } else {
+        return JNI_FALSE;
+    }
 }

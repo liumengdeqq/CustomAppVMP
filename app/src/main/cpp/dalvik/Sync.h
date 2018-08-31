@@ -8,5 +8,9 @@
 #include "Thread.h"
 typedef void* (*dvmLockObject_func)(Thread* self, Object *obj);
 dvmLockObject_func dvmLockObjectHook;
-void initSynFuction(void *dvm_hand,int apilevel);
+
+typedef void* (*dvmUnlockObject_func)(Thread* self, Object *obj);
+dvmUnlockObject_func dvmUnlockObjectHook;
+
+bool initSynFuction(void *dvm_hand,int apilevel);
 #endif //CUSTOMAPPVMP_SYNC_H

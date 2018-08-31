@@ -20,10 +20,14 @@
 #ifndef DALVIK_EXCEPTION_H_
 #define DALVIK_EXCEPTION_H_
 
+#include "Thread.h"
 void dvmThrowNullPointerException(JNIEnv* env, const char* msg);
 
 void dvmThrowArrayIndexOutOfBoundsException(JNIEnv* env, int length, int index);
 
 void dvmThrowArithmeticException(JNIEnv* env, const char* msg);
+INLINE bool dvmCheckException(Thread* self) {
+    return (self->exception != NULL);
+}
 
 #endif  // DALVIK_EXCEPTION_H_
