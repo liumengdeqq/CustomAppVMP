@@ -289,6 +289,22 @@ static const char* gOpNames[kNumPackedOpcodes] = {
     // END(libdex-opcode-names)
 };
 
+Opcode dexOpcodeFromCodeUnit(u2 codeUnit) {
+    /*
+     * This will want to become table-driven should the opcode layout
+     * get more complicated.
+     *
+     * Note: This has to match the corresponding code in opcode-gen, so
+     * that data tables get generated in a consistent way.
+     */
+    int lowByte = codeUnit & 0xff;
+    if (lowByte != 0xff) {
+        return (Opcode) lowByte;
+    } else {
+        return (Opcode) ((codeUnit >> 8) | 0x100);
+    }
+}
+
 /*
  * Return the name of an opcode.
  */

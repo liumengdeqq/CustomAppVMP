@@ -28,7 +28,90 @@
 #ifndef LIBDEX_DEXOPCODES_H_
 #define LIBDEX_DEXOPCODES_H_
 
-#include "DexFile.h"
+#include "Common.h"
+
+//////////////////////////////////////////////////////////////////////////
+
+enum AccessFlags {
+    /** public member / class */
+    ACC_PUBLIC = 0x0001,
+
+    /** private member */
+    ACC_PRIVATE = 0x0002,
+
+    /** protected member */
+    ACC_PROTECTED = 0x0004,
+
+    /** static member */
+    ACC_STATIC = 0x0008,
+
+    /** final member / class */
+    ACC_FINAL = 0x0010,
+
+    /**
+     * synchronized method, only valid in dex files for {@code native}
+     * methods
+     */
+    ACC_SYNCHRONIZED = 0x0020,
+
+    /**
+     * class with new-style {@code invokespecial} for superclass
+     * method access
+     */
+    ACC_SUPER = 0x0020,
+
+    /** volatile field */
+    ACC_VOLATILE = 0x0040,
+
+    /** bridge method (generated) */
+    ACC_BRIDGE = 0x0040,
+
+    /** transient field */
+    ACC_TRANSIENT = 0x0080,
+
+    /** varargs method */
+    ACC_VARARGS = 0x0080,
+
+    /** native method */
+    ACC_NATIVE = 0x0100,
+
+    /** "class" is in fact an public static final interface */
+    ACC_INTERFACE = 0x0200,
+
+    /** abstract method / class */
+    ACC_ABSTRACT = 0x0400,
+
+    /**
+     * method with strict floating point ({@code strictfp})
+     * behavior
+     */
+    ACC_STRICT = 0x0800,
+
+    /** synthetic member */
+    ACC_SYNTHETIC = 0x1000,
+
+    /** class is an annotation type */
+    ACC_ANNOTATION = 0x2000,
+
+    /**
+     * class is an enumerated type, field is an element of an enumerated
+     * type
+     */
+    ACC_ENUM = 0x4000,
+
+    /** method is a constructor */
+    ACC_CONSTRUCTOR = 0x10000,
+
+    /**
+     * method was declared {@code synchronized}, has no effect on
+     * execution (other than inspecting this flag, per se)
+     */
+    ACC_DECLARED_SYNCHRONIZED = 0x20000,
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+//#include "DexFile.h"
 
 /*
  * kMaxOpcodeValue: the highest possible raw (unpacked) opcode value
@@ -325,7 +408,6 @@ enum Opcode {
     OP_SPUT_OBJECT_VOLATILE         = 0xfe,
     OP_UNUSED_FF                    = 0xff,
     // END(libdex-opcode-enum)
-    // Note: The end of this list must match dvmVerifyDex() in vm/compiler/Frontend.cpp
 };
 
 /*
@@ -601,21 +683,7 @@ enum Opcode {
  * opcode space is inherently sparse, in that the opcode unit is 16
  * bits wide, but for most opcodes, eight of those bits are for data.
  */
-DEX_INLINE Opcode dexOpcodeFromCodeUnit(u2 codeUnit) {
-    /*
-     * This will want to become table-driven should the opcode layout
-     * get more complicated.
-     *
-     * Note: This has to match the corresponding code in opcode-gen, so
-     * that data tables get generated in a consistent way.
-     */
-    int lowByte = codeUnit & 0xff;
-    if (lowByte != 0xff) {
-        return (Opcode) lowByte;
-    } else {
-        return (Opcode) ((codeUnit >> 8) | 0x100);
-    }
-}
+/* DEX_INLINE */ Opcode dexOpcodeFromCodeUnit(u2 codeUnit);
 
 /*
  * Return the name of an opcode.
