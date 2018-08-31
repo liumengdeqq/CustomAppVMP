@@ -9,8 +9,11 @@
 #include "TypeCheck.h"
 #include "Alloc.h"
 #include "Class.h"
+#include "Array.h"
+#include "Common.h"
+#include "WriteBarrier.h"
 //////////////////////////////////////////////////////////////////////////
-
+#define GOTO_TARGET_DECL(_target, ...)
 inline void dvmAbort(void) {
     exit(1);
 }
@@ -482,18 +485,18 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
 
 /* File: c/opcommon.cpp */
 /* forward declarations of goto targets */
-// GOTO_TARGET_DECL(filledNewArray, bool methodCallRange);
-// GOTO_TARGET_DECL(invokeVirtual, bool methodCallRange);
-// GOTO_TARGET_DECL(invokeSuper, bool methodCallRange);
-// GOTO_TARGET_DECL(invokeInterface, bool methodCallRange);
-// GOTO_TARGET_DECL(invokeDirect, bool methodCallRange);
-// GOTO_TARGET_DECL(invokeStatic, bool methodCallRange);
-// GOTO_TARGET_DECL(invokeVirtualQuick, bool methodCallRange);
-// GOTO_TARGET_DECL(invokeSuperQuick, bool methodCallRange);
-// GOTO_TARGET_DECL(invokeMethod, bool methodCallRange, const Method* methodToCall,
-//     u2 count, u2 regs);
-// GOTO_TARGET_DECL(returnFromMethod);
-// GOTO_TARGET_DECL(exceptionThrown);
+ GOTO_TARGET_DECL(filledNewArray, bool methodCallRange);
+ GOTO_TARGET_DECL(invokeVirtual, bool methodCallRange);
+ GOTO_TARGET_DECL(invokeSuper, bool methodCallRange);
+ GOTO_TARGET_DECL(invokeInterface, bool methodCallRange);
+ GOTO_TARGET_DECL(invokeDirect, bool methodCallRange);
+ GOTO_TARGET_DECL(invokeStatic, bool methodCallRange);
+ GOTO_TARGET_DECL(invokeVirtualQuick, bool methodCallRange);
+ GOTO_TARGET_DECL(invokeSuperQuick, bool methodCallRange);
+ GOTO_TARGET_DECL(invokeMethod, bool methodCallRange, const Method* methodToCall,
+     u2 count, u2 regs);
+ GOTO_TARGET_DECL(returnFromMethod);
+ GOTO_TARGET_DECL(exceptionThrown);
 
 /*
  * ===========================================================================
@@ -981,7 +984,7 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
 
 jvalue BWdvmInterpretPortable(const SeparatorData* separatorData, JNIEnv* env, jobject thiz, ...) {
     jvalue* params = NULL; // 参数数组。
-    jvalue retval;  // 返回值。
+    JValue retval;  // 返回值。
     DvmDex* methodClassDex;
     const Method* curMethod;
     const u2* pc;   // 程序计数器。
@@ -989,7 +992,7 @@ jvalue BWdvmInterpretPortable(const SeparatorData* separatorData, JNIEnv* env, j
     u4 ref;
     u2 inst;        // 当前指令。
     u2 vsrc1, vsrc2, vdst;      // usually used for register indexes
-
+    bool methodCallRange;
     unsigned int startIndex;
 
     // 处理参数。
@@ -1540,9 +1543,48 @@ HANDLE_OPCODE(OP_NEW_INSTANCE /*vAA, class@BBBB*/)
 }
 FINISH(2);
 OP_END
-HANDLE_OPCODE(OP_NEW_ARRAY)
-HANDLE_OPCODE(OP_FILLED_NEW_ARRAY)
-HANDLE_OPCODE(OP_FILLED_NEW_ARRAY_RANGE)
+HANDLE_OPCODE(OP_NEW_ARRAY /*vA, vB, class@CCCC*/)
+{
+    ClassObject* arrayClass;
+    ArrayObject* newArray;
+    s4 length;
+
+    EXPORT_PC();
+
+    vdst = INST_A(inst);
+    vsrc1 = INST_B(inst);       /* length reg */
+    ref = FETCH(1);
+    MY_LOG_INFO("|new-array v%d,v%d,class@0x%04x  (%d elements)",
+          vdst, vsrc1, ref, (s4) GET_REGISTER(vsrc1));
+    length = (s4) GET_REGISTER(vsrc1);
+    if (length < 0) {
+        dvmThrowNegativeArraySizeException(length);
+        GOTO_exceptionThrown();
+    }
+    arrayClass = dvmDexGetResolvedClass(methodClassDex, ref);
+    if (arrayClass == NULL) {
+        arrayClass = dvmResolveClasshook(curMethod->clazz, ref, false);
+        if (arrayClass == NULL)
+            GOTO_exceptionThrown();
+    }
+    /* verifier guarantees this is an array class */
+    assert(dvmIsArrayClass(arrayClass));
+    assert(dvmIsClassInitialized(arrayClass));
+
+    newArray = dvmAllocArrayByClassHook(arrayClass, length, ALLOC_DONT_TRACK);
+    if (newArray == NULL)
+        GOTO_exceptionThrown();
+    SET_REGISTER(vdst, (u4) newArray);
+}
+FINISH(2);
+OP_END
+
+HANDLE_OPCODE(OP_FILLED_NEW_ARRAY /*vB, {vD, vE, vF, vG, vA}, class@CCCC*/)
+GOTO_invoke(filledNewArray,false);
+OP_END
+HANDLE_OPCODE(OP_FILLED_NEW_ARRAY_RANGE /*{vCCCC..v(CCCC+AA-1)}, class@BBBB*/)
+GOTO_invoke(filledNewArray, true);
+OP_END
 HANDLE_OPCODE(OP_FILL_ARRAY_DATA)
 HANDLE_OPCODE(OP_THROW)
 HANDLE_OPCODE(OP_GOTO)
@@ -1822,7 +1864,99 @@ HANDLE_OPCODE(OP_IPUT_OBJECT_VOLATILE)
 HANDLE_OPCODE(OP_SGET_OBJECT_VOLATILE)
 HANDLE_OPCODE(OP_SPUT_OBJECT_VOLATILE)
 HANDLE_OPCODE(OP_UNUSED_FF)
+GOTO_TARGET(filledNewArray, bool methodCallRange, bool)
+{
+    ClassObject* arrayClass;
+    ArrayObject* newArray;
+    u4* contents;
+    char typeCh;
+    int i;
+    u4 arg5;
 
+    EXPORT_PC();
+
+    ref = FETCH(1);             /* class ref */
+    vdst = FETCH(2);            /* first 4 regs -or- range base */
+
+    if (methodCallRange) {
+        vsrc1 = INST_AA(inst);  /* #of elements */
+        arg5 = -1;              /* silence compiler warning */
+        MY_LOG_INFO("|filled-new-array-range args=%d @0x%04x {regs=v%d-v%d}",
+              vsrc1, ref, vdst, vdst+vsrc1-1);
+    } else {
+        arg5 = INST_A(inst);
+        vsrc1 = INST_B(inst);   /* #of elements */
+        MY_LOG_INFO("|filled-new-array args=%d @0x%04x {regs=0x%04x %x}",
+              vsrc1, ref, vdst, arg5);
+    }
+
+    /*
+     * Resolve the array class.
+     */
+    arrayClass = dvmDexGetResolvedClass(methodClassDex, ref);
+    if (arrayClass == NULL) {
+        arrayClass = dvmResolveClasshook(curMethod->clazz, ref, false);
+        if (arrayClass == NULL)
+            GOTO_exceptionThrown();
+    }
+    /*
+    if (!dvmIsArrayClass(arrayClass)) {
+        dvmThrowRuntimeException(
+            "filled-new-array needs array class");
+        GOTO_exceptionThrown();
+    }
+    */
+    /* verifier guarantees this is an array class */
+    assert(dvmIsArrayClass(arrayClass));
+    assert(dvmIsClassInitialized(arrayClass));
+
+    /*
+     * Create an array of the specified type.
+     */
+    MY_LOG_INFO("+++ filled-new-array type is '%s'", arrayClass->descriptor);
+    typeCh = arrayClass->descriptor[1];
+    if (typeCh == 'D' || typeCh == 'J') {
+        /* category 2 primitives not allowed */
+        dvmThrowRuntimeException("bad filled array req");
+        GOTO_exceptionThrown();
+    } else if (typeCh != 'L' && typeCh != '[' && typeCh != 'I') {
+        /* TODO: requires multiple "fill in" loops with different widths */
+        MY_LOG_INFO("non-int primitives not implemented");
+        dvmThrowInternalError(
+                "filled-new-array not implemented for anything but 'int'");
+        GOTO_exceptionThrown();
+    }
+
+    newArray = dvmAllocArrayByClassHook(arrayClass, vsrc1, ALLOC_DONT_TRACK);
+    if (newArray == NULL)
+        GOTO_exceptionThrown();
+
+    /*
+     * Fill in the elements.  It's legal for vsrc1 to be zero.
+     */
+    contents = (u4*)(void*)newArray->contents;
+    if (methodCallRange) {
+        for (i = 0; i < vsrc1; i++)
+            contents[i] = GET_REGISTER(vdst+i);
+    } else {
+        assert(vsrc1 <= 5);
+        if (vsrc1 == 5) {
+            contents[4] = GET_REGISTER(arg5);
+            vsrc1--;
+        }
+        for (i = 0; i < vsrc1; i++) {
+            contents[i] = GET_REGISTER(vdst & 0x0f);
+            vdst >>= 4;
+        }
+    }
+    if (typeCh == 'L' || typeCh == '[') {
+        dvmWriteBarrierArray(newArray, 0, newArray->length);
+    }
+
+    retval.l = (Object*)newArray;
+}
+FINISH(3);
+GOTO_TARGET_END
 // TODO 异常现在不支持。
     /*
      * Jump here when the code throws an exception.

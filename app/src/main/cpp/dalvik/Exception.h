@@ -33,5 +33,9 @@ void dvmThrowClassCastException(ClassObject* actual, ClassObject* desired)
 {
 
 }
-
+void dvmThrowNegativeArraySizeException(s4 size) {
+//    dvmThrowExceptionFmt(gDvm.exNegativeArraySizeException, "%d", size);
+}
+void dvmThrowRuntimeException(const char* msg);
+void dvmThrowInternalError(const char* msg);
 #endif  // DALVIK_EXCEPTION_H_

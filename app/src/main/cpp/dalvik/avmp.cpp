@@ -11,6 +11,8 @@
 #include "TypeCheck.h"
 #include "Alloc.h"
 #include "Class.h"
+#include "Array.h"
+#include "CardTable.h"
 void nativeLog(JNIEnv* env, jobject thiz) {
     MY_LOG_INFO("nativeLog, thiz=%p", thiz);
 }
@@ -73,6 +75,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     initTypeCheckFuction(dvm_hand,16);
     initAllocFuction(dvm_hand,16);
     initClassFuction(dvm_hand,16);
+    initArrayFuction(dvm_hand,16);
+    initCarTableFuction(dvm_hand,16);
     // ע�᱾�ط�����
     registerFunctions(env);
 
