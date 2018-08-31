@@ -6,6 +6,7 @@
 #include "Resolve.h"
 #include "Thread.h"
 #include "Sync.h"
+#include "TypeCheck.h"
 //////////////////////////////////////////////////////////////////////////
 
 inline void dvmAbort(void) {

@@ -7,12 +7,14 @@
 
 #include "Inlines.h"
 #include "Object.h"
-int dvmInstanceofNonTrivial(const ClassObject* instance,const ClassObject* clazz);
+typedef int (*dvmInstanceofNonTrivial_func)(const ClassObject* instance,const ClassObject* clazz);
+dvmInstanceofNonTrivial_func dvmInstanceofNonTrivialHook;
 INLINE int dvmInstanceof(const ClassObject* instance, const ClassObject* clazz)
 {
     if (instance == clazz) {
         return 1;
     } else
-        return dvmInstanceofNonTrivial(instance, clazz);
+        return dvmInstanceofNonTrivialHook(instance, clazz);
 }
+bool initTypeCheckFuction(void *dvm_hand,int apilevel);
 #endif //CUSTOMAPPVMP_TYPECHECK_H

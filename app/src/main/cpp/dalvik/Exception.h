@@ -29,5 +29,9 @@ void dvmThrowArithmeticException(JNIEnv* env, const char* msg);
 INLINE bool dvmCheckException(Thread* self) {
     return (self->exception != NULL);
 }
+void dvmThrowClassCastException(ClassObject* actual, ClassObject* desired)
+{
+
+}
 
 #endif  // DALVIK_EXCEPTION_H_

@@ -274,5 +274,5 @@ struct Thread {
 };
 typedef Thread* (*dvmThreadSelf_func)();
 dvmThreadSelf_func dvmThreadSelfHook;
-void initThreadFuction(void *dvm_hand,int apilevel);
+bool initThreadFuction(void *dvm_hand,int apilevel);
 #endif //CUSTOMAPPVMP_THREAD_H
