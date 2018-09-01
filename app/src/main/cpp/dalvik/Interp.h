@@ -8,6 +8,16 @@
 #include "log.h"
 typedef void (*dvmReportExceptionThrow_func)(Thread* self, Object* exception);
 dvmReportExceptionThrow_func dvmReportExceptionThrowHook;
+typedef void (*dvmReportInvoke_func)(Thread* self, const Method* methodToCall);
+dvmReportInvoke_func dvmReportInvokeHook;
+typedef void (*dvmReportPreNativeInvoke_func)(const Method* methodToCall, Thread* self, u4* fp);
+dvmReportPreNativeInvoke_func dvmReportPreNativeInvokeHook;
+typedef void (*dvmReportPostNativeInvoke_func)(const Method* methodToCall, Thread* self, u4* fp);
+dvmReportPostNativeInvoke_func dvmReportPostNativeInvokeHook;
+typedef u1 (*dvmGetOriginalOpcode_func)(const u2* addr);
+dvmGetOriginalOpcode_func dvmGetOriginalOpcodeHook;
+typedef void (*dvmThrowVerificationError_func)(const Method* method, int kind, int ref);
+dvmThrowVerificationError_func dvmThrowVerificationErrorHook;
 bool initInterpFuction(void *dvm_hand,int apilevel);
 void dvmDumpRegs(const Method* method, const u4* framePtr, bool inOnly)
 {

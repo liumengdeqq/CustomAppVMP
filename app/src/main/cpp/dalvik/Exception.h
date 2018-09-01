@@ -56,6 +56,9 @@ INLINE Object* dvmGetException(Thread* self) {
 INLINE void dvmClearException(Thread* self) {
     self->exception = NULL;
 }
+void dvmThrowNoSuchMethodError(const char* msg) {
+//    dvmThrowException(gDvm.exNoSuchMethodError, msg);
+}
 
 void dvmThrowArrayStoreExceptionIncompatibleElement(ClassObject* objectType,
                                                     ClassObject* arrayType)

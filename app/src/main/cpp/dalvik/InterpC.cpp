@@ -17,6 +17,8 @@
 #include <math.h>
 #include "Stack.h"
 #include "Interp.h"
+#include "JniInternal.h"
+#include "InlineNative.h"
 //////////////////////////////////////////////////////////////////////////
 #define GOTO_TARGET_DECL(_target, ...)
 # define DUMP_REGS(_meth, _frame, _inOnly) dvmDumpRegs(_meth, _frame, _inOnly)
@@ -663,7 +665,7 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
 
 #define GOTO_exceptionThrown() goto exceptionThrown;
 
-//#define GOTO_returnFromMethod() goto returnFromMethod;
+#define GOTO_returnFromMethod() goto returnFromMethod;
 
 #define GOTO_invoke(_target, _methodCallRange)                              \
     do {                                                                    \
@@ -682,9 +684,9 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
  * started.  If so, switch to a different "goto" table.
  */
 #define PERIODIC_CHECKS(_pcadj) {                              \
-        if (dvmCheckSuspendQuick(slef)) {                                   \
+        if (dvmCheckSuspendQuick(self)) {                                   \
             EXPORT_PC();  /* need for precise GC */                         \
-            dvmCheckSuspendPendingHook(slef);                                   \
+            dvmCheckSuspendPendingHook(self);                                   \
         }                                                                   \
     }
 
@@ -1708,7 +1710,7 @@ HANDLE_OPCODE(OP_MONITOR_ENTER /*vAA*/)
         GOTO_exceptionThrown();
     MY_LOG_INFO("+ locking %p %s", obj, obj->clazz->descriptor);
     EXPORT_PC();    /* need for precise GC */
-    dvmLockObjectHook(slef, obj);
+    dvmLockObjectHook(self, obj);
 }
 FINISH(1);
 OP_END
@@ -1734,8 +1736,8 @@ HANDLE_OPCODE(OP_MONITOR_EXIT /*vAA*/)
         GOTO_exceptionThrown();
     }
     MY_LOG_INFO("+ unlocking %p %s", obj, obj->clazz->descriptor);
-    if (!dvmUnlockObjectHook(slef, obj)) {
-        assert(dvmCheckException(slef));
+    if (!dvmUnlockObjectHook(self, obj)) {
+        assert(dvmCheckException(self));
         ADJUST_PC(1);
         GOTO_exceptionThrown();
     }
@@ -1957,7 +1959,7 @@ HANDLE_OPCODE(OP_THROW /*vAA*/)
         MY_LOG_INFO("Bad exception");
     } else {
         /* use the requested exception */
-        dvmSetException(slef, obj);
+        dvmSetException(self, obj);
     }
     GOTO_exceptionThrown();
 }
@@ -2922,7 +2924,7 @@ HANDLE_OPCODE(OP_BREAKPOINT)
      * time we get here, the breakpoint has already been handled and
      * the thread resumed.
      */
-    u1 originalOpcode = dvmGetOriginalOpcode(pc);
+    u1 originalOpcode = dvmGetOriginalOpcodeHook(pc);
     MY_LOG_INFO("+++ break 0x%02x (0x%04x -> 0x%04x)", originalOpcode, inst,
           INST_REPLACE_OP(inst, originalOpcode));
     inst = INST_REPLACE_OP(inst, originalOpcode);
@@ -2933,7 +2935,7 @@ HANDLE_OPCODE(OP_THROW_VERIFICATION_ERROR)
 EXPORT_PC();
 vsrc1 = INST_AA(inst);
 ref = FETCH(1);             /* class/field/method ref */
-dvmThrowVerificationError(curMethod, vsrc1, ref);
+dvmThrowVerificationErrorHook(curMethod, vsrc1, ref);
 GOTO_exceptionThrown();
 OP_END
 HANDLE_OPCODE(OP_EXECUTE_INLINE /*vB, {vD, vE, vF, vG}, inline@CCCC*/)
@@ -2985,8 +2987,8 @@ HANDLE_OPCODE(OP_EXECUTE_INLINE /*vB, {vD, vE, vF, vG}, inline@CCCC*/)
             ;
     }
 
-    if (slef->interpBreak.ctl.subMode & kSubModeDebugProfile) {
-        if (!dvmPerformInlineOp4Dbg(arg0, arg1, arg2, arg3, &retval, ref))
+    if (self->interpBreak.ctl.subMode & kSubModeDebugProfile) {
+        if (!dvmPerformInlineOp4DbgHook(arg0, arg1, arg2, arg3, &retval, ref))
             GOTO_exceptionThrown();
     } else {
         if (!dvmPerformInlineOp4Std(arg0, arg1, arg2, arg3, &retval, ref))
@@ -3146,6 +3148,56 @@ GOTO_TARGET(filledNewArray, bool methodCallRange, bool)
     retval.l = (Object*)newArray;
 }
 FINISH(3);
+GOTO_TARGET_END
+GOTO_TARGET(invokeInterface, bool methodCallRange)
+{
+    Object* thisPtr;
+    ClassObject* thisClass;
+
+    EXPORT_PC();
+
+    vsrc1 = INST_AA(inst);      /* AA (count) or BA (count + arg 5) */
+    ref = FETCH(1);             /* method ref */
+    vdst = FETCH(2);            /* 4 regs -or- first reg */
+
+    /*
+     * The object against which we are executing a method is always
+     * in the first argument.
+     */
+    if (methodCallRange) {
+        assert(vsrc1 > 0);
+        MY_LOG_INFO("|invoke-interface-range args=%d @0x%04x {regs=v%d-v%d}",
+              vsrc1, ref, vdst, vdst+vsrc1-1);
+        thisPtr = (Object*) GET_REGISTER(vdst);
+    } else {
+        assert((vsrc1>>4) > 0);
+        MY_LOG_INFO("|invoke-interface args=%d @0x%04x {regs=0x%04x %x}",
+              vsrc1 >> 4, ref, vdst, vsrc1 & 0x0f);
+        thisPtr = (Object*) GET_REGISTER(vdst & 0x0f);
+    }
+
+    if (!checkForNull(env,thisPtr))
+        GOTO_exceptionThrown();
+
+    thisClass = thisPtr->clazz;
+
+    /*
+     * Given a class and a method index, find the Method* with the
+     * actual code we want to execute.
+     */
+    methodToCall = dvmFindInterfaceMethodInCache(thisClass, ref, curMethod,
+                                                 methodClassDex);
+#if defined(WITH_JIT) && defined(MTERP_STUB)
+    self->callsiteClass = thisClass;
+    self->methodToCall = methodToCall;
+#endif
+    if (methodToCall == NULL) {
+        assert(dvmCheckException(self));
+        GOTO_exceptionThrown();
+    }
+
+    GOTO_invokeMethod(methodCallRange, methodToCall, vsrc1, vdst);
+}
 GOTO_TARGET_END
 GOTO_TARGET(invokeVirtual, bool methodCallRange, bool)
 {
@@ -3354,6 +3406,156 @@ GOTO_TARGET(exceptionThrown)
     FINISH(0);
 }
 GOTO_TARGET_END
+GOTO_TARGET(invokeDirect, bool methodCallRange)
+{
+    u2 thisReg;
+
+    EXPORT_PC();
+
+    vsrc1 = INST_AA(inst);      /* AA (count) or BA (count + arg 5) */
+    ref = FETCH(1);             /* method ref */
+    vdst = FETCH(2);            /* 4 regs -or- first reg */
+
+    if (methodCallRange) {
+        MY_LOG_INFO("|invoke-direct-range args=%d @0x%04x {regs=v%d-v%d}",
+              vsrc1, ref, vdst, vdst+vsrc1-1);
+        thisReg = vdst;
+    } else {
+        MY_LOG_INFO("|invoke-direct args=%d @0x%04x {regs=0x%04x %x}",
+              vsrc1 >> 4, ref, vdst, vsrc1 & 0x0f);
+        thisReg = vdst & 0x0f;
+    }
+
+    if (!checkForNull(env,(Object*) GET_REGISTER(thisReg)))
+        GOTO_exceptionThrown();
+
+    methodToCall = dvmDexGetResolvedMethod(methodClassDex, ref);
+    if (methodToCall == NULL) {
+        methodToCall = dvmResolveMethodhook(curMethod->clazz, ref,
+                                        METHOD_DIRECT);
+        if (methodToCall == NULL) {
+            MY_LOG_INFO("+ unknown direct method");     // should be impossible
+            GOTO_exceptionThrown();
+        }
+    }
+    GOTO_invokeMethod(methodCallRange, methodToCall, vsrc1, vdst);
+}
+GOTO_TARGET_END
+
+GOTO_TARGET(invokeSuper, bool methodCallRange)
+{
+    Method* baseMethod;
+    u2 thisReg;
+
+    EXPORT_PC();
+
+    vsrc1 = INST_AA(inst);      /* AA (count) or BA (count + arg 5) */
+    ref = FETCH(1);             /* method ref */
+    vdst = FETCH(2);            /* 4 regs -or- first reg */
+
+    if (methodCallRange) {
+        MY_LOG_INFO("|invoke-super-range args=%d @0x%04x {regs=v%d-v%d}",
+              vsrc1, ref, vdst, vdst+vsrc1-1);
+        thisReg = vdst;
+    } else {
+        MY_LOG_INFO("|invoke-super args=%d @0x%04x {regs=0x%04x %x}",
+              vsrc1 >> 4, ref, vdst, vsrc1 & 0x0f);
+        thisReg = vdst & 0x0f;
+    }
+
+    /* impossible in well-formed code, but we must check nevertheless */
+    if (!checkForNull(env,(Object*) GET_REGISTER(thisReg)))
+        GOTO_exceptionThrown();
+
+    /*
+     * Resolve the method.  This is the correct method for the static
+     * type of the object.  We also verify access permissions here.
+     * The first arg to dvmResolveMethod() is just the referring class
+     * (used for class loaders and such), so we don't want to pass
+     * the superclass into the resolution call.
+     */
+    baseMethod = dvmDexGetResolvedMethod(methodClassDex, ref);
+    if (baseMethod == NULL) {
+        baseMethod = dvmResolveMethodhook(curMethod->clazz, ref,METHOD_VIRTUAL);
+        if (baseMethod == NULL) {
+            MY_LOG_INFO("+ unknown method or access denied");
+            GOTO_exceptionThrown();
+        }
+    }
+
+    /*
+     * Combine the object we found with the vtable offset in the
+     * method's class.
+     *
+     * We're using the current method's class' superclass, not the
+     * superclass of "this".  This is because we might be executing
+     * in a method inherited from a superclass, and we want to run
+     * in that class' superclass.
+     */
+    if (baseMethod->methodIndex >= curMethod->clazz->super->vtableCount) {
+        /*
+         * Method does not exist in the superclass.  Could happen if
+         * superclass gets updated.
+         */
+        dvmThrowNoSuchMethodError(baseMethod->name);
+        GOTO_exceptionThrown();
+    }
+    methodToCall = curMethod->clazz->super->vtable[baseMethod->methodIndex];
+
+#if 0
+    if (dvmIsAbstractMethod(methodToCall)) {
+        dvmThrowAbstractMethodError("abstract method not implemented");
+        GOTO_exceptionThrown();
+    }
+#else
+    assert(!dvmIsAbstractMethod(methodToCall) ||
+           methodToCall->nativeFunc != NULL);
+#endif
+    MY_LOG_INFO("+++ base=%s.%s super-virtual=%s.%s",
+          baseMethod->clazz->descriptor, baseMethod->name,
+          methodToCall->clazz->descriptor, methodToCall->name);
+    assert(methodToCall != NULL);
+
+    GOTO_invokeMethod(methodCallRange, methodToCall, vsrc1, vdst);
+}
+GOTO_TARGET_END
+GOTO_TARGET(invokeStatic, bool methodCallRange)
+EXPORT_PC();
+
+vsrc1 = INST_AA(inst);      /* AA (count) or BA (count + arg 5) */
+ref = FETCH(1);             /* method ref */
+vdst = FETCH(2);            /* 4 regs -or- first reg */
+
+if (methodCallRange)
+    MY_LOG_INFO("|invoke-static-range args=%d @0x%04x {regs=v%d-v%d}",
+          vsrc1, ref, vdst, vdst+vsrc1-1);
+else
+    MY_LOG_INFO("|invoke-static args=%d @0x%04x {regs=0x%04x %x}",
+          vsrc1 >> 4, ref, vdst, vsrc1 & 0x0f);
+
+methodToCall = dvmDexGetResolvedMethod(methodClassDex, ref);
+if (methodToCall == NULL) {
+    methodToCall = dvmResolveMethodhook(curMethod->clazz, ref, METHOD_STATIC);
+    if (methodToCall == NULL) {
+        MY_LOG_INFO("+ unknown method");
+        GOTO_exceptionThrown();
+    }
+
+#if defined(WITH_JIT) && defined(MTERP_STUB)
+    /*
+     * The JIT needs dvmDexGetResolvedMethod() to return non-null.
+     * Include the check if this code is being used as a stub
+     * called from the assembly interpreter.
+     */
+    if ((self->interpBreak.ctl.subMode & kSubModeJitTraceBuild) &&
+        (dvmDexGetResolvedMethod(methodClassDex, ref) == NULL)) {
+        /* Class initialization is still ongoing */
+        dvmJitEndTraceSelect(self,pc);
+    }
+#endif
+}
+GOTO_invokeMethod(methodCallRange, methodToCall, vsrc1, vdst);
+GOTO_TARGET_END
 GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
             u2 count, u2 regs)
 {
@@ -3485,7 +3687,7 @@ GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
          * For non-native calls, EXIT is marked in the RETURN op.
          */
         PC_TO_SELF();
-        dvmReportInvoke(self, methodToCall);
+        dvmReportInvokeHook(self, methodToCall);
     }
 
     if (!dvmIsNativeMethod(methodToCall)) {
@@ -3516,7 +3718,7 @@ GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
 //        DUMP_REGS(methodToCall, newFp, true);   // show input args
 
         if (self->interpBreak.ctl.subMode != 0) {
-            dvmReportPreNativeInvoke(methodToCall, self, newSaveArea->prevFrame);
+            dvmReportPreNativeInvokeHook(methodToCall, self, newSaveArea->prevFrame);
         }
 
         MY_LOG_INFO("> native <-- %s.%s %s", methodToCall->clazz->descriptor,
@@ -3530,7 +3732,7 @@ GOTO_TARGET(invokeMethod, bool methodCallRange, const Method* _methodToCall,
         (*methodToCall->nativeFunc)(newFp, &retval, methodToCall, self);
 
         if (self->interpBreak.ctl.subMode != 0) {
-            dvmReportPostNativeInvoke(methodToCall, self, newSaveArea->prevFrame);
+            dvmReportPostNativeInvokeHook(methodToCall, self, newSaveArea->prevFrame);
         }
 
         /* pop frame off */

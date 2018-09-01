@@ -15,6 +15,7 @@
 #include "CardTable.h"
 #include "Stack.h"
 #include "Interp.h"
+#include "InlineNative.h"
 void nativeLog(JNIEnv* env, jobject thiz) {
     MY_LOG_INFO("nativeLog, thiz=%p", thiz);
 }
@@ -82,6 +83,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     initStackFuction(dvm_hand,16);
     initInterpFuction(dvm_hand,16);
     initExceptionFuction(dvm_hand,16);
+    initInlineNaticeFuction(dvm_hand,16);
     // ע�᱾�ط�����
     registerFunctions(env);
 
