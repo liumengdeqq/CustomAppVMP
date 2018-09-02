@@ -53,5 +53,10 @@ dvmLineNumFromPC_func dvmLineNumFromPChook;
 
 typedef int (*dvmCleanupStackOverflow_func)(Thread* self, const Object* exception);
 dvmCleanupStackOverflow_func dvmCleanupStackOverflowhook;
+INLINE bool dvmIsBreakFrame(const u4* fp)
+{
+    return SAVEAREA_FROM_FP(fp)->method == NULL;
+}
+
 bool initStackFuction(void * dvm_hand,int apilevel);
 #endif //CUSTOMAPPVMP_STACK_H

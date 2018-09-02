@@ -19,6 +19,7 @@
 #include "Interp.h"
 #include "JniInternal.h"
 #include "InlineNative.h"
+#include "FindInterface.h"
 //////////////////////////////////////////////////////////////////////////
 #define GOTO_TARGET_DECL(_target, ...)
 # define DUMP_REGS(_meth, _frame, _inOnly) dvmDumpRegs(_meth, _frame, _inOnly)
@@ -3517,6 +3518,69 @@ GOTO_TARGET(invokeSuper, bool methodCallRange)
     assert(methodToCall != NULL);
 
     GOTO_invokeMethod(methodCallRange, methodToCall, vsrc1, vdst);
+}
+GOTO_TARGET_END
+GOTO_TARGET(returnFromMethod)
+{
+    StackSaveArea* saveArea;
+
+    /*
+     * We must do this BEFORE we pop the previous stack frame off, so
+     * that the GC can see the return value (if any) in the local vars.
+     *
+     * Since this is now an interpreter switch point, we must do it before
+     * we do anything at all.
+     */
+    PERIODIC_CHECKS(0);
+
+    MY_LOG_INFO("> retval=0x%llx (leaving %s.%s %s)",
+          retval.j, curMethod->clazz->descriptor, curMethod->name,
+          curMethod->shorty);
+    //DUMP_REGS(curMethod, fp);
+
+    saveArea = SAVEAREA_FROM_FP(fp);
+
+#ifdef EASY_GDB
+    debugSaveArea = saveArea;
+#endif
+
+    /* back up to previous frame and see if we hit a break */
+    fp = (u4*)saveArea->prevFrame;
+    assert(fp != NULL);
+
+    /* Handle any special subMode requirements */
+    if (self->interpBreak.ctl.subMode != 0) {
+        PC_FP_TO_SELF();
+        dvmReportReturnHook(self);
+    }
+
+    if (dvmIsBreakFrame(fp)) {
+        /* bail without popping the method frame from stack */
+        MY_LOG_INFO("+++ returned into break frame");
+        GOTO_bail();
+    }
+
+    /* update thread FP, and reset local variables */
+    self->interpSave.curFrame = fp;
+    curMethod = SAVEAREA_FROM_FP(fp)->method;
+    self->interpSave.method = curMethod;
+    //methodClass = curMethod->clazz;
+    methodClassDex = curMethod->clazz->pDvmDex;
+    pc = saveArea->savedPc;
+        MY_LOG_INFO("> (return to %s.%s %s)", curMethod->clazz->descriptor,
+          curMethod->name, curMethod->shorty);
+
+    /* use FINISH on the caller's invoke instruction */
+    //u2 invokeInstr = INST_INST(FETCH(0));
+    if (true /*invokeInstr >= OP_INVOKE_VIRTUAL &&
+        invokeInstr <= OP_INVOKE_INTERFACE*/)
+    {
+        FINISH(3);
+    } else {
+        //ALOGE("Unknown invoke instr %02x at %d",
+        //    invokeInstr, (int) (pc - curMethod->insns));
+        assert(false);
+    }
 }
 GOTO_TARGET_END
 GOTO_TARGET(invokeStatic, bool methodCallRange)

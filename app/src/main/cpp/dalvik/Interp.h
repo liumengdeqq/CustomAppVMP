@@ -18,6 +18,14 @@ typedef u1 (*dvmGetOriginalOpcode_func)(const u2* addr);
 dvmGetOriginalOpcode_func dvmGetOriginalOpcodeHook;
 typedef void (*dvmThrowVerificationError_func)(const Method* method, int kind, int ref);
 dvmThrowVerificationError_func dvmThrowVerificationErrorHook;
+typedef Method* (*dvmInterpFindInterfaceMethod_func)(ClassObject* thisClass, u4 methodIdx,
+                                                  const Method* method, DvmDex* methodClassDex);
+dvmInterpFindInterfaceMethod_func dvmInterpFindInterfaceMethodHook;
+
+typedef void (*dvmAbort_func)();
+dvmAbort_func dvmAbortHook;
+typedef void (*dvmReportReturn_func)(Thread* self);
+dvmReportReturn_func dvmReportReturnHook;
 bool initInterpFuction(void *dvm_hand,int apilevel);
 void dvmDumpRegs(const Method* method, const u4* framePtr, bool inOnly)
 {

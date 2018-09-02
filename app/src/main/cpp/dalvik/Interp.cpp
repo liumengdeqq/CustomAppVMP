@@ -33,8 +33,18 @@ bool initInterpFuction(void *dvm_hand,int apilevel){
         if (!dvmThrowVerificationErrorHook) {
             return JNI_FALSE;
         }
-
-
+        dvmInterpFindInterfaceMethodHook=(dvmInterpFindInterfaceMethod_func)dlsym(dvm_hand,"dvmInterpFindInterfaceMethod");
+        if (!dvmInterpFindInterfaceMethodHook) {
+            return JNI_FALSE;
+        }
+        dvmAbortHook=(dvmAbort_func)dlsym(dvm_hand,"dvmAbort");
+        if (!dvmAbortHook) {
+            return JNI_FALSE;
+        }
+        dvmReportReturnHook=(dvmReportReturn_func)dlsym(dvm_hand,"dvmReportReturn");
+        if (!dvmReportReturnHook) {
+            return JNI_FALSE;
+        }
         return JNI_TRUE;
     } else {
         return JNI_FALSE;
