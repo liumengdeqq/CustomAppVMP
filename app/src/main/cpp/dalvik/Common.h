@@ -10,7 +10,7 @@ typedef int8_t              s1;
 typedef int16_t             s2;
 typedef int32_t             s4;
 typedef int64_t             s8;
-#define HAVE_BIG_ENDIAN
+#define HAVE_LITTLE_ENDIAN
 /**
  * ��������Ԫ�ظ�����ֻ���������飬����������ָ�롣
  */

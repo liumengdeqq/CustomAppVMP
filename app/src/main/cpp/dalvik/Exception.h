@@ -67,5 +67,8 @@ void dvmThrowArrayStoreExceptionIncompatibleElement(ClassObject* objectType,
 //                   "%s cannot be stored in an array of type %s",
 //                   objectType, arrayType);
 }
+void dvmThrowStringIndexOutOfBoundsExceptionWithIndex(jsize stringLength,
+                                                      jsize requestIndex){
 
+}
 #endif  // DALVIK_EXCEPTION_H_

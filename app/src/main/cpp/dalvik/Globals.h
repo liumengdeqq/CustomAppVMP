@@ -4,7 +4,7 @@
 #include "YcFile.h"
 #include "unzip.h"
 
-// TODO ÕâÀïÊÇµ÷ÊÔ±êÖ¾¡£
+// TODO ï¿½ï¿½ï¿½ï¿½ï¿½Çµï¿½ï¿½Ô±ï¿½Ö¾ï¿½ï¿½
 #define _AVMP_DEBUG_
 
 extern const char* gYcFileName;
@@ -13,11 +13,11 @@ typedef struct _ADVMPGlobals {
     char* apkPath;
 
     /**
-     * ±£´æycÎÄ¼þµÄÄÚÈÝ¡£
+     * ï¿½ï¿½ï¿½ï¿½ycï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¡ï¿½
      */
     unsigned char* ycData;
     /**
-     * ycÎÄ¼þ´ó´óÐ¡¡£
+     * ycï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½
      */
     uLong ycSize;
 
@@ -26,3 +26,4 @@ typedef struct _ADVMPGlobals {
 } ADVMPGlobals;
 
 extern ADVMPGlobals gAdvmp;
+extern JNIEnv *gEnv;

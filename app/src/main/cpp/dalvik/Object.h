@@ -22,7 +22,7 @@ struct StringObject;
 struct ArrayObject;
 struct ClassObject;
 struct Method;
-
+struct  Object;
 union JValue {
 #if defined(HAVE_LITTLE_ENDIAN)
     u1      z;
