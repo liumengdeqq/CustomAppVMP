@@ -5,7 +5,7 @@
 #ifndef CUSTOMAPPVMP_DEXFILE_H
 #define CUSTOMAPPVMP_DEXFILE_H
 
-#include "stdafx.h"
+#include "Common.h"
 enum { kSHA1DigestLen = 20,
     kSHA1DigestOutputLen = kSHA1DigestLen*2 +1 };
 
@@ -111,17 +111,10 @@ struct DexClassDef {
 /*
  * Direct-mapped "type_item".
  */
-struct DexTypeItem {
-    u2  typeIdx;            /* index into typeIds */
-};
 
 /*
  * Direct-mapped "type_list".
  */
-struct DexTypeList {
-    u4  size;               /* #of entries in list */
-    DexTypeItem list[1];    /* entries */
-};
 
 /*
  * Direct-mapped "code_item".

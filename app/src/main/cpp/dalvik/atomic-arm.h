@@ -5,13 +5,12 @@
 #ifndef CUSTOMAPPVMP_ATOMIC_ARM_H
 #define CUSTOMAPPVMP_ATOMIC_ARM_H
 
-
 #include <stdint.h>
 
 #ifndef ANDROID_ATOMIC_INLINE
 #define ANDROID_ATOMIC_INLINE inline __attribute__((always_inline))
 #endif
-
+#  define __builtin_expect(x, y) x
 #if ANDROID_SMP == 0
 #define ANDROID_MEMBAR_STORE android_compiler_barrier
 #else
@@ -19,7 +18,7 @@
 #endif
 extern ANDROID_ATOMIC_INLINE void android_compiler_barrier()
 {
-    __asm__ __volatile__ ("" : : : "memory");
+//    __asm__ __volatile__ ("" : : : "memory");
 }
 
 extern ANDROID_ATOMIC_INLINE void android_memory_barrier()
@@ -52,20 +51,21 @@ extern ANDROID_ATOMIC_INLINE
 int android_atomic_cas(int32_t old_value, int32_t new_value,
                        volatile int32_t *ptr)
 {
-    int32_t prev, status;
-    do {
-        __asm__ __volatile__ ("ldrex %0, [%3]\n"
-                "mov %1, #0\n"
-                "teq %0, %4\n"
-#ifdef __thumb2__
-                "it eq\n"
-#endif
-                "strexeq %1, %5, [%3]"
-        : "=&r" (prev), "=&r" (status), "+m"(*ptr)
-        : "r" (ptr), "Ir" (old_value), "r" (new_value)
-        : "cc");
-    } while (__builtin_expect(status != 0, 0));
-    return prev != old_value;
+//    int32_t prev, status;
+//    do {
+//        __asm__ __volatile__ ("ldrex %0, [%3]\n"
+//                "mov %1, #0\n"
+//                "teq %0, %4\n"
+//#ifdef __thumb2__
+//                "it eq\n"
+//#endif
+//                "strexeq %1, %5, [%3]"
+//        : "=&r" (prev), "=&r" (status), "+m"(*ptr)
+//        : "r" (ptr), "Ir" (old_value), "r" (new_value)
+//        : "cc");
+//    } while (__builtin_expect(status != 0, 0));
+//    return prev != old_value;
+    return 0;
 }
 
 
@@ -78,7 +78,17 @@ int android_atomic_release_cas(int32_t old_value, int32_t new_value,
 }
 
 
+#if ANDROID_SMP == 0
+#define ANDROID_MEMBAR_FULL android_compiler_barrier
+#else
+#define ANDROID_MEMBAR_FULL android_memory_barrier
+#endif
 
+#if ANDROID_SMP == 0
+#define ANDROID_MEMBAR_STORE android_compiler_barrier
+#else
+#define ANDROID_MEMBAR_STORE android_memory_store_barrier
+#endif
 
 
 

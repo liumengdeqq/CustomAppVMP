@@ -5,14 +5,14 @@
 #ifndef CUSTOMAPPVMP_INTERPSTATE_H
 #define CUSTOMAPPVMP_INTERPSTATE_H
 
-#include "Common.h"
-#include "Object.h"
+#include "object.h"
+
 struct InterpSaveState {
     const u2*       pc;         // Dalvik PC
     u4*             curFrame;   // Dalvik frame pointer
-    const Method    *method;    // Method being executed
-    DvmDex*         methodClassDex;
-    JValue          retval;
+    const struct Method    *method;    // Method being executed
+    struct  DvmDex*         methodClassDex;
+     JValue          retval;
     void*           bailPtr;
 #if defined(WITH_TRACKREF_CHECKS)
     int             debugTrackedRefStart;

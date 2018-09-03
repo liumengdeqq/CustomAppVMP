@@ -3,7 +3,6 @@
 //
 
 #include "Array.h"
-#include <dlfcn.h>
 bool initArrayFuction(void *dvm_hand,int apilevel){
     if (dvm_hand) {
         dvmAllocArrayByClassHook = (dvmAllocArrayByClass_func)dlsym(dvm_hand,"dvmInitClass");

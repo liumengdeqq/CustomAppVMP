@@ -20,8 +20,9 @@
 #ifndef DALVIK_EXCEPTION_H_
 #define DALVIK_EXCEPTION_H_
 
-#include "Thread.h"
 
+#include "stdafx.h"
+#include "Thread.h"
 typedef int (*dvmFindCatchBlock_func)(Thread* self, int relPc, Object* exception,
                                        bool scanOnly, void** newFrame);
 dvmFindCatchBlock_func dvmFindCatchBlockHook;
@@ -36,16 +37,20 @@ void dvmThrowArithmeticException(JNIEnv* env, const char* msg);
 INLINE bool dvmCheckException(Thread* self) {
     return (self->exception != NULL);
 }
-void dvmThrowClassCastException(ClassObject* actual, ClassObject* desired)
+void dvmThrowClassCastException(struct ClassObject* actual, struct ClassObject* desired)
 {
 
 }
 void dvmThrowNegativeArraySizeException(s4 size) {
 //    dvmThrowExceptionFmt(gDvm.exNegativeArraySizeException, "%d", size);
 }
-void dvmThrowRuntimeException(const char* msg);
-void dvmThrowInternalError(const char* msg);
-INLINE void dvmSetException(Thread* self, Object* exception)
+void dvmThrowRuntimeException(const char* msg){
+
+}
+void dvmThrowInternalError(const char* msg){
+
+}
+INLINE void dvmSetException(struct Thread* self, struct Object* exception)
 {
     assert(exception != NULL);
     self->exception = exception;

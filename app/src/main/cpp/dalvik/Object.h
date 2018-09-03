@@ -14,10 +14,10 @@
  */
 #ifndef CUSTOMAPPVMP_OBJECT_H
 #define CUSTOMAPPVMP_OBJECT_H
-#include "DvmDex.h"
-#include "Common.h"
+
+#include "stdafx.h"
 #include "DexProto.h"
-#include "RegisterMap.h"
+#include "DvmDex.h"
 struct StringObject;
 struct ArrayObject;
 struct ClassObject;

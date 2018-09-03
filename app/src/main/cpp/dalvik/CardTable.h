@@ -5,7 +5,9 @@
 #ifndef CUSTOMAPPVMP_CARDTABLE_H
 #define CUSTOMAPPVMP_CARDTABLE_H
 
-#include "Object.h"
+#include <dlfcn.h>
+#include <jni.h>
+#include "base.h"
 typedef void (*dvmMarkCard_func)(const void *addr);
 dvmMarkCard_func dvmMarkCardHook;
 bool initCarTableFuction(void *dvm_hand,int apilevel);

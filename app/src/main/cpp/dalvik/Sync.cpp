@@ -3,7 +3,6 @@
 //
 
 #include "Sync.h"
-#include <dlfcn.h>
 
 bool initSynFuction(void *dvm_hand,int apilevel){
     if (dvm_hand) {

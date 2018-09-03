@@ -4,6 +4,9 @@
 
 #ifndef CUSTOMAPPVMP_STACK_H
 #define CUSTOMAPPVMP_STACK_H
+
+#include "object.h"
+#include "Thread.h"
 struct StackSaveArea {
 #ifdef PAD_SAVE_AREA
     u4          pad0, pad1, pad2;

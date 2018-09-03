@@ -2,8 +2,6 @@
 // Created by liu meng on 2018/8/31.
 //
 #include "Alloc.h"
-#include <dlfcn.h>
-#include <jni.h>
 bool initAllocFuction(void *dvm_hand,int apilevel){
 
     if (dvm_hand) {

@@ -2,12 +2,7 @@
 // Created by liu meng on 2018/9/1.
 //
 #include "InlineNative.h"
-#include <jni.h>
-#include <dlfcn.h>
-#include "UtfString.h"
-#include "ObjectInlines.h"
-#include "Globals.h"
-#include <math.h>
+
 
 #ifdef HAVE__MEMCMP16
 /* hand-coded assembly implementation, available on some platforms */

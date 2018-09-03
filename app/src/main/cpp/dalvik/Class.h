@@ -5,8 +5,7 @@
 #ifndef CUSTOMAPPVMP_CLASS_H
 #define CUSTOMAPPVMP_CLASS_H
 
-#include "Inlines.h"
-#include "Object.h"
+#include "object.h"
 INLINE bool dvmIsClassInitialized(const ClassObject* clazz) {
     return (clazz->status == CLASS_INITIALIZED);
 }

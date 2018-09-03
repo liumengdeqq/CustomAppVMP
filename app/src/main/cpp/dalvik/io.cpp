@@ -1,4 +1,4 @@
-#include "stdafx.h"
+
 #include "io.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -8,13 +8,13 @@ FileReader::FileReader() : mFilePath(NULL), mFP(NULL) {}
 
 FileReader::~FileReader() { Close(); }
 
-// ´ò¿ªÎÄ¼þ¡£
+// ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 bool FileReader::Open(const char* filePath) {
     mFilePath = strdup(filePath);
     mFP = fopen(filePath, "r");
 }
 
-// ÒÆ¶¯ÎÄ¼þÖ¸Õëµ½Ö¸¶¨Æ«ÒÆÎ»ÖÃ¡£
+// ï¿½Æ¶ï¿½ï¿½Ä¼ï¿½Ö¸ï¿½ëµ½Ö¸ï¿½ï¿½Æ«ï¿½ï¿½Î»ï¿½Ã¡ï¿½
 bool FileReader::Seek(unsigned int offset) {
     if (0 == fseek(mFP, offset, SEEK_SET)) {
         return true;
@@ -23,7 +23,7 @@ bool FileReader::Seek(unsigned int offset) {
     }
 }
 
-// ¹Ø±Õ´ò¿ªµÄÎÄ¼þ¡£
+// ï¿½Ø±Õ´ò¿ªµï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 void FileReader::Close() {
     if (NULL != mFilePath) {
         free(mFilePath);
@@ -35,7 +35,7 @@ void FileReader::Close() {
     }
 }
 
-// ¶ÁÈ¡Ò»¸öÎÞ·ûºÅshortÖµ¡£
+// ï¿½ï¿½È¡Ò»ï¿½ï¿½ï¿½Þ·ï¿½ï¿½ï¿½shortÖµï¿½ï¿½
 bool FileReader::ReadUShort(unsigned short* value) {
     size_t ret = fread(value, sizeof(unsigned short), 1, mFP);
     if (ret != sizeof(unsigned short)) {
@@ -44,7 +44,7 @@ bool FileReader::ReadUShort(unsigned short* value) {
     return true;
 }
 
-// ¶ÁÈ¡Ò»¸öÎÞ·ûºÅÕûÐÍÖµ¡£
+// ï¿½ï¿½È¡Ò»ï¿½ï¿½ï¿½Þ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½
 bool FileReader::ReadUInt(unsigned int* value) {
     size_t ret = fread(value, sizeof(unsigned int), 1, mFP);
     if (ret != sizeof(unsigned int)) {
@@ -53,7 +53,7 @@ bool FileReader::ReadUInt(unsigned int* value) {
     return true;
 }
 
-// ¶ÁÈ¡×Ö½ÚÊý×é¡£
+// ï¿½ï¿½È¡ï¿½Ö½ï¿½ï¿½ï¿½ï¿½é¡£
 bool FileReader::ReadBytes(unsigned char* buffer, int count) {
     size_t ret = fread(buffer, sizeof(unsigned char), count, mFP);
     if (ret != (sizeof(unsigned char) * count)) {
@@ -62,7 +62,7 @@ bool FileReader::ReadBytes(unsigned char* buffer, int count) {
     return true;
 }
 
-// ¶ÁÈ¡ÎÞ·ûºÅshortÊý×é¡£
+// ï¿½ï¿½È¡ï¿½Þ·ï¿½ï¿½ï¿½shortï¿½ï¿½ï¿½é¡£
 bool FileReader::ReadUShorts(unsigned short* buffer, int size) {
     for (int i = 0; i < size; i++) {
         unsigned short value;
@@ -88,7 +88,7 @@ ZipReader::~ZipReader() {
     Close();
 }
 
-// ´ò¿ªzipÎÄ¼þ¡£
+// ï¿½ï¿½zipï¿½Ä¼ï¿½ï¿½ï¿½
 bool ZipReader::Open() {
     mUnzFile = unzOpen(mZipFilePath);
     if (NULL == mUnzFile) {
@@ -98,55 +98,55 @@ bool ZipReader::Open() {
     }
 }
 
-// »ñµÃzipÖÐÄ³¸öÎÄ¼þ´óÐ¡¡£
+// ï¿½ï¿½ï¿½zipï¿½ï¿½Ä³ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½
 uLong ZipReader::GetFileSizeInZip(const char *fileName) {
     if (UNZ_OK != unzLocateFile(mUnzFile, fileName, false)) {
-        MY_LOG_WARNING("Î´ÕÒµ½ÎÄ¼þ£º%s", fileName);
+        MY_LOG_WARNING("Î´ï¿½Òµï¿½ï¿½Ä¼ï¿½ï¿½ï¿½%s", fileName);
         return 0;
     }
     unz_file_info info = { 0 };
 
     if (UNZ_OK != unzGetCurrentFileInfo(mUnzFile, &info, NULL, 0, NULL, 0, NULL, 0)) {
-        MY_LOG_WARNING("»ñµÃÎÄ¼þÐÅÏ¢Ê§°Ü¡£");
+        MY_LOG_WARNING("ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Ï¢Ê§ï¿½Ü¡ï¿½");
         return 0;
     }
     return info.uncompressed_size;
 }
 
-// ¶ÁÈ¡Ä³¸öÎÄ¼þ¡£
+// ï¿½ï¿½È¡Ä³ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 bool ZipReader::ReadBytes(const char *fileName, unsigned char *buffer, size_t len) {
     if (UNZ_OK != unzLocateFile(mUnzFile, fileName, false)) {
-        MY_LOG_WARNING("¶¨Î»ÎÄ¼þÊ§°Ü¡£");
+        MY_LOG_WARNING("ï¿½ï¿½Î»ï¿½Ä¼ï¿½Ê§ï¿½Ü¡ï¿½");
         return false;
     }
     unz_file_info info = { 0 };
 
     if (UNZ_OK != unzGetCurrentFileInfo(mUnzFile, &info, NULL, 0, NULL, 0, NULL, 0)) {
-        MY_LOG_WARNING("»ñµÃÎÄ¼þÐÅÏ¢Ê§°Ü¡£");
+        MY_LOG_WARNING("ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Ï¢Ê§ï¿½Ü¡ï¿½");
         return false;
     }
 
     if (len > info.uncompressed_size) {
-        MY_LOG_WARNING("Òª¶ÁÈ¡µÄ³¤¶È³¬¹ýÎÄ¼þµÄ³¤¶È¡£");
+        MY_LOG_WARNING("Òªï¿½ï¿½È¡ï¿½Ä³ï¿½ï¿½È³ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ä³ï¿½ï¿½È¡ï¿½");
         return false;
     }
 
     // 
     if (UNZ_OK != unzOpenCurrentFile(mUnzFile)) {
-        MY_LOG_WARNING("´ò¿ªµ±Ç°ÎÄ¼þÊ§°Ü¡£");
+        MY_LOG_WARNING("ï¿½ò¿ªµï¿½Ç°ï¿½Ä¼ï¿½Ê§ï¿½Ü¡ï¿½");
         return false;
     }
 
     int result;
     if ( ((result = unzReadCurrentFile(mUnzFile, buffer, len)) < 0 ) || (result != len) ) {
-        MY_LOG_WARNING("¶ÁÈ¡µ±Ç°ÎÄ¼þÊ§°Ü¡£result=%d.", result);
+        MY_LOG_WARNING("ï¿½ï¿½È¡ï¿½ï¿½Ç°ï¿½Ä¼ï¿½Ê§ï¿½Ü¡ï¿½result=%d.", result);
         return false;
     } else {
         return true;
     }
 }
 
-// ¹Ø±ÕÎÄ¼þ¡£
+// ï¿½Ø±ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 bool ZipReader::Close() {
     if (NULL == mUnzFile) {
         return true;

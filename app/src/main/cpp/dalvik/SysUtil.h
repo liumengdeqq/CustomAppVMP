@@ -5,7 +5,6 @@
 #ifndef CUSTOMAPPVMP_SYSUTIL_H
 #define CUSTOMAPPVMP_SYSUTIL_H
 
-#include "stdafx.h"
 struct MemMapping {
     void*   addr;           /* start of data */
     size_t  length;         /* length of data */

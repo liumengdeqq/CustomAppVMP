@@ -3,9 +3,6 @@
 //
 
 #include "Resolve.h"
-#include <dlfcn.h>
-#include "log.h"
-
 
 bool initResolveFuction(void * dvm_hand,int apilevel){
     if (dvm_hand) {
@@ -21,6 +18,15 @@ bool initResolveFuction(void * dvm_hand,int apilevel){
         if (!dvmResolveMethodhook) {
             return JNI_FALSE;
         }
+        dvmResolveInstFieldhook = (dvmResolveInstField_func)dlsym(dvm_hand,"dvmResolveInstField");
+        if (!dvmResolveInstFieldhook) {
+            return JNI_FALSE;
+        }
+        dvmResolveStaticFieldhook = (dvmResolveStaticField_func)dlsym(dvm_hand,"dvmResolveStaticField");
+        if (!dvmResolveStaticFieldhook) {
+            return JNI_FALSE;
+        }
+
         return JNI_TRUE;
     } else {
         return JNI_FALSE;

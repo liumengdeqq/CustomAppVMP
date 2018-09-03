@@ -5,7 +5,8 @@
 #ifndef CUSTOMAPPVMP_INTERP_H
 #define CUSTOMAPPVMP_INTERP_H
 
-#include "log.h"
+#include "stdafx.h"
+#include "Thread.h"
 typedef void (*dvmReportExceptionThrow_func)(Thread* self, Object* exception);
 dvmReportExceptionThrow_func dvmReportExceptionThrowHook;
 typedef void (*dvmReportInvoke_func)(Thread* self, const Method* methodToCall);
@@ -62,6 +63,4 @@ void dvmDumpRegs(const Method* method, const u4* framePtr, bool inOnly)
         }
     }
 }
-#endif
-
 #endif //CUSTOMAPPVMP_INTERP_H

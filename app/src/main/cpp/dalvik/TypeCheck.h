@@ -5,8 +5,7 @@
 #ifndef CUSTOMAPPVMP_TYPECHECK_H
 #define CUSTOMAPPVMP_TYPECHECK_H
 
-#include "Inlines.h"
-#include "Object.h"
+#include "object.h"
 typedef int (*dvmInstanceofNonTrivial_func)(const ClassObject* instance,const ClassObject* clazz);
 dvmInstanceofNonTrivial_func dvmInstanceofNonTrivialHook;
 INLINE int dvmInstanceof(const ClassObject* instance, const ClassObject* clazz)

@@ -5,8 +5,10 @@
 #ifndef CUSTOMAPPVMP_INLINENATIVE_H
 #define CUSTOMAPPVMP_INLINENATIVE_H
 
-#include "Common.h"
-#include "Object.h"
+#include "object.h"
+#include "ObjectInlines.h"
+#include "Exception.h"
+#include "Globals.h"
 enum NativeInlineOps {
     INLINE_EMPTYINLINEMETHOD = 0,
     INLINE_STRING_CHARAT = 1,

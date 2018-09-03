@@ -3,7 +3,6 @@
 //
 
 #include "CardTable.h"
-#include <dlfcn.h>
 bool initCarTableFuction(void *dvm_hand,int apilevel){
     if (dvm_hand) {
         dvmMarkCardHook = (dvmMarkCard_func)dlsym(dvm_hand,"dvmMarkCard");

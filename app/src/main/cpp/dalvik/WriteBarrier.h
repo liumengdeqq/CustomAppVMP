@@ -5,8 +5,8 @@
 #ifndef CUSTOMAPPVMP_WRITEBARRIER_H
 #define CUSTOMAPPVMP_WRITEBARRIER_H
 
-#include "Object.h"
-#include "CardTable.h"
+#include "stdafx.h"
+#include "object.h"
 INLINE void dvmWriteBarrierField(const Object *obj, void *addr)
 {
     dvmMarkCardHook(obj);

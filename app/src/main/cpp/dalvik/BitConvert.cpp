@@ -1,7 +1,7 @@
-#include "stdafx.h"
+
 #include "BitConvert.h"
 
-// ½«×Ö½ÚÊý×é×ª»»Îª×Ö·û´®¡£
+// ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½Îªï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½
 char* ToString(unsigned char bytes[], size_t size) {
     char* str = (char*) calloc (size + 1, sizeof(char));
     if (NULL == str) {
@@ -13,7 +13,7 @@ char* ToString(unsigned char bytes[], size_t size) {
     return str;
 }
 
-// ½«×Ö½ÚÊý×é×ª»»ÎªÎÞ·ûºÅÕûÐÎ¡£
+// ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½Îªï¿½Þ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¡ï¿½
 unsigned int ToUInt(unsigned char bytes[], size_t size) {
     unsigned int ret = 0;
     for (int i = 0, j = 0; (i < size) && (j < 4); i++, j++) {
@@ -22,7 +22,7 @@ unsigned int ToUInt(unsigned char bytes[], size_t size) {
     return ret;
 }
 
-// ½«×Ö½ÚÊý×é×ª»»ÎªÎÞ·ûºÅÕûÐÎ¡£
+// ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½Îªï¿½Þ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¡ï¿½
 unsigned int ToUInt(unsigned char bytes[], size_t size, unsigned int start) {
     unsigned int ret = 0;
     for (int i = start, j = 0; (i < size) && (j < 4); i++, j++) {

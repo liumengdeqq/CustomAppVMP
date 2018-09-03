@@ -4,15 +4,12 @@
 #include "Globals.h"
 #include "Utils.h"
 #include "Resolve.h"
-#ifdef _AVMP_DEBUG_
 #include <dlfcn.h>
-#include "Thread.h"
 #include "Sync.h"
 #include "TypeCheck.h"
 #include "Alloc.h"
 #include "Class.h"
 #include "Array.h"
-#include "CardTable.h"
 #include "Stack.h"
 #include "Interp.h"
 #include "InlineNative.h"
@@ -22,8 +19,8 @@ void nativeLog(JNIEnv* env, jobject thiz) {
 
 jint separatorTest(JNIEnv* env, jobject thiz, jint value) {
     MY_LOG_INFO("separatorTest - value=%d", value);
-    jvalue result = BWdvmInterpretPortable(gAdvmp.ycFile->GetSeparatorData(0), env, thiz, value);
-    return result.i;
+    jvalue result = BWdvmInterpretPortable(env);
+    return 2;
 }
 
 /**
@@ -59,11 +56,7 @@ void registerFunctions(JNIEnv* env) {
     }
 }
 
-#else
 
-//+${replaceAll}
-
-#endif
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     JNIEnv* env = NULL;
@@ -87,23 +80,23 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     // ע�᱾�ط�����
     registerFunctions(env);
 
-    // ���apk·����
-    gAdvmp.apkPath = GetAppPath(env);
-    MY_LOG_INFO("apk path��%s", gAdvmp.apkPath);
-
-    // �ͷ�yc�ļ���
-    gAdvmp.ycSize = ReleaseYcFile(gAdvmp.apkPath, &gAdvmp.ycData);
-    if (0 == gAdvmp.ycSize) {
-        MY_LOG_WARNING("release Yc file fail!");
-        goto _ret;
-    }
-
-    // ����yc�ļ���
-    gAdvmp.ycFile = new YcFile;
-    if (!gAdvmp.ycFile->parse(gAdvmp.ycData, gAdvmp.ycSize)) {
-        MY_LOG_WARNING("parse Yc file fail.");
-        goto _ret;
-    }
+//    // ���apk·����
+//    gAdvmp.apkPath = GetAppPath(env);
+//    MY_LOG_INFO("apk path��%s", gAdvmp.apkPath);
+//
+//    // �ͷ�yc�ļ���
+//    gAdvmp.ycSize = ReleaseYcFile(gAdvmp.apkPath, &gAdvmp.ycData);
+//    if (0 == gAdvmp.ycSize) {
+//        MY_LOG_WARNING("release Yc file fail!");
+//        goto _ret;
+//    }
+//
+//    // ����yc�ļ���
+//    gAdvmp.ycFile = new YcFile;
+//    if (!gAdvmp.ycFile->parse(gAdvmp.ycData, gAdvmp.ycSize)) {
+//        MY_LOG_WARNING("parse Yc file fail.");
+//        goto _ret;
+//    }
 
 _ret:
     return JNI_VERSION_1_4;

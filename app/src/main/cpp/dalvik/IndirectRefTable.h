@@ -5,10 +5,8 @@
 #ifndef CUSTOMAPPVMP_INDIRECTREFTABLE_H
 #define CUSTOMAPPVMP_INDIRECTREFTABLE_H
 
-#include "Common.h"
-#include "Object.h"
 struct IndirectRefSlot {
-    Object* obj;        /* object pointer itself, NULL if the slot is unused */
+    struct Object* obj;        /* object pointer itself, NULL if the slot is unused */
     u4      serial;     /* slot serial number */
 };
 enum IndirectRefKind {
@@ -25,15 +23,15 @@ union IRTSegmentState {
     } parts;
 };
 struct iref_iterator{
-    IndirectRefSlot* table_;
+    void* table_;
     size_t i_;
     size_t capacity_;
 };
 struct IndirectRefTable{
-    typedef iref_iterator iterator;
+    struct iref_iterator iterator;
 
     /* semi-public - read/write by interpreter in native call handler */
-    IRTSegmentState segmentState;
+    union IRTSegmentState segmentState;
 
     /*
      * private:
@@ -42,9 +40,9 @@ struct IndirectRefTable{
      * uses offsetof, since private member data makes us non-POD.
      */
     /* bottom of the stack */
-    IndirectRefSlot* table_;
+    struct IndirectRefSlot* table_;
     /* bit mask, ORed into all irefs */
-    IndirectRefKind kind_;
+    enum IndirectRefKind kind_;
     /* #of entries we have space for */
     size_t          alloc_entries_;
     /* max #of entries allowed */

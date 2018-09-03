@@ -5,8 +5,7 @@
 #ifndef CUSTOMAPPVMP_FINDINTERFACE_H
 #define CUSTOMAPPVMP_FINDINTERFACE_H
 
-#include "Inlines.h"
-#include "Object.h"
+#include "stdafx.h"
 #include "AtomicCache.h"
 #include "Interp.h"
 INLINE Method* dvmFindInterfaceMethodInCache(ClassObject* thisClass,

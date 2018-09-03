@@ -5,7 +5,7 @@
 #ifndef CUSTOMAPPVMP_PROFILE_H
 #define CUSTOMAPPVMP_PROFILE_H
 
-#include "Common.h"
+#include "base.h"
 struct AllocProfState {
     bool    enabled;            // is allocation tracking enabled?
 

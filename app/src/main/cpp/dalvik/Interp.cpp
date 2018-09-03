@@ -3,8 +3,7 @@
 //
 
 #include "Interp.h"
-#include <dlfcn.h>
-#include <jni.h>
+
 bool initInterpFuction(void *dvm_hand,int apilevel){
 
 

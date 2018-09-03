@@ -1,14 +1,26 @@
 #pragma once
 
-#include <jni.h>
-#include "YcFile.h"
 
+#include "Exception.h"
+#include "DexOpcodes.h"
+#include "Resolve.h"
+#include "ObjectInlines.h"
+#include "Globals.h"
+#include "Array.h"
+#include "Class.h"
+#include "Stack.h"
+#include "FindInterface.h"
+#include "Alloc.h"
+#include "InlineNative.h"
+#include "TypeCheck.h"
+#include "Sync.h"
+#include "JniInternal.h"
 /**
- * ×Ö½ÚÂë½âÊÍÆ÷¡£
- * @param[in] Separator Êý¾Ý¡£
- * @param[in] env JNI»·¾³¡£
- * @param[in] thiz µ±Ç°¶ÔÏó¡£
- * @param[in] ... ¿É±ä²ÎÊý£¬´«Èëµ÷ÓÃJava·½·¨µÄ²ÎÊý¡£
+ * ï¿½Ö½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * @param[in] Separator ï¿½ï¿½ï¿½Ý¡ï¿½
+ * @param[in] env JNIï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * @param[in] thiz ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½
+ * @param[in] ... ï¿½É±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Javaï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½ï¿½ï¿½
  * @return 
  */
-jvalue BWdvmInterpretPortable(const SeparatorData* separatorData, JNIEnv* env, jobject thiz, ...);
+jvalue BWdvmInterpretPortable(JNIEnv* env);

@@ -5,10 +5,8 @@
 #ifndef CUSTOMAPPVMP_ATOMICCACHE_H
 #define CUSTOMAPPVMP_ATOMICCACHE_H
 
-#include "Common.h"
-#include "atomic-arm.h"
+#include "stdafx.h"
 #include "Interp.h"
-#include <assert.h>
 struct AtomicCacheEntry {
     u4          key1;
     u4          key2;

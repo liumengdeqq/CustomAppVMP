@@ -5,7 +5,6 @@
 #ifndef CUSTOMAPPVMP_REGISTERMAP_H
 #define CUSTOMAPPVMP_REGISTERMAP_H
 
-#include "Common.h"
 struct RegisterMap {
     /* header */
     u1      format;         /* enum RegisterMapFormat; MUST be first entry */

@@ -1,6 +1,5 @@
-#include "stdafx.h"
+
 #include "Exception.h"
-#include <dlfcn.h>
 void dvmThrowNullPointerException(JNIEnv* env, const char* msg) {
     jclass clazz = env->FindClass("java/lang/NullPointerException");
     env->ThrowNew(clazz, msg);

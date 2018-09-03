@@ -5,13 +5,9 @@
 #ifndef CUSTOMAPPVMP_THREAD_H
 #define CUSTOMAPPVMP_THREAD_H
 
-#include "Common.h"
-#include "Object.h"
+#include "object.h"
 #include "InterpState.h"
-#include "IndirectRefTable.h"
-#include "ReferenceTable.h"
 #include "Debugger.h"
-#include "Profile.h"
 struct Thread;
 union InterpBreak {
     volatile int64_t   all;

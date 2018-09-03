@@ -23,7 +23,6 @@
  */
 
 #include "DexOpcodes.h"
-#include <assert.h>
 
 /*
  * Dalvik opcode names.

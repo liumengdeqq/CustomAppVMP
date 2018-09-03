@@ -4,6 +4,8 @@
 
 #ifndef CUSTOMAPPVMP_ALLOC_H
 #define CUSTOMAPPVMP_ALLOC_H
+
+#include "Thread.h"
 enum {
     ALLOC_DEFAULT = 0x00,
     ALLOC_DONT_TRACK = 0x01,  /* don't add to internal tracking list */

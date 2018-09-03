@@ -1,9 +1,11 @@
 #pragma once
 
+#include <jni.h>
+#include <string.h>
 /**
- * »ñµÃAPPÎÄ¼þÂ·¾¶¡£
- * @param[in] env JNI»·¾³¡£
- * @return ·µ»ØAPPÎÄ¼þÂ·¾¶¡£Õâ¸öÂ·¾¶Ê¹ÓÃÍêºóÐèÒªÍ¨¹ýfreeº¯ÊýÊÍ·ÅÄÚ´æ¡£
- * @note TODO Õâ¸öº¯ÊýÖÐÊ¹ÓÃÁË·´Éä»ñµÃAPPÎÄ¼þµÄÂ·¾¶£¬Ó¦¸ÃÊÇÓÐ¼æÈÝÐÔÎÊÌâµÄ¡£
+ * ï¿½ï¿½ï¿½APPï¿½Ä¼ï¿½Â·ï¿½ï¿½ï¿½ï¿½
+ * @param[in] env JNIï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * @return ï¿½ï¿½ï¿½ï¿½APPï¿½Ä¼ï¿½Â·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÒªÍ¨ï¿½ï¿½freeï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½ï¿½Ú´æ¡£
+ * @note TODO ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½APPï¿½Ä¼ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½
  */
 char* GetAppPath(JNIEnv* env);

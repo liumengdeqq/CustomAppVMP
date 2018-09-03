@@ -1,6 +1,7 @@
 #pragma once
 #ifndef CUSTOMAPPVMP_COMMON_H
 #define CUSTOMAPPVMP_COMMON_H
+
 #include <stdint.h>
 typedef uint8_t             u1;
 typedef uint16_t            u2;

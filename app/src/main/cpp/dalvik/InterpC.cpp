@@ -1,25 +1,5 @@
-#include "stdafx.h"
-#include "DexOpcodes.h"
-#include "Exception.h"
+
 #include "InterpC.h"
-#include "DvmDex.h"
-#include "Resolve.h"
-#include "Thread.h"
-#include "Sync.h"
-#include "TypeCheck.h"
-#include "Alloc.h"
-#include "Class.h"
-#include "Array.h"
-#include "Common.h"
-#include "WriteBarrier.h"
-#include "Object.h"
-#include "ObjectInlines.h"
-#include <math.h>
-#include "Stack.h"
-#include "Interp.h"
-#include "JniInternal.h"
-#include "InlineNative.h"
-#include "FindInterface.h"
 //////////////////////////////////////////////////////////////////////////
 #define GOTO_TARGET_DECL(_target, ...)
 # define DUMP_REGS(_meth, _frame, _inOnly) dvmDumpRegs(_meth, _frame, _inOnly)
@@ -238,41 +218,41 @@ static const char kSpacing[] = "            ";
  * @param[in] separatorData Separator数据。
  * @return 返回参数寄存器个数。
  */
-static size_t getParamRegCount(const SeparatorData* separatorData) {
-    int count = 0;
-
-    for (int i = 0; i < separatorData->paramShortDesc.size; i++) {
-        switch (separatorData->paramShortDesc.str[i]) {
-        case 'Z':
-        case 'B':
-        case 'S':
-        case 'C':
-        case 'I':
-        case 'F':
-        case 'L':
-        case '[':
-            count++;
-            break;
-        case 'J':
-        case 'D':
-            count += 2;
-            break;
-        default:
-            MY_LOG_ERROR("无效的短类型！");
-            break;
-        }
-    }
-    return count;
-}
+//static size_t getParamRegCount(const SeparatorData* separatorData) {
+//    int count = 0;
+//
+//    for (int i = 0; i < separatorData->paramShortDesc.size; i++) {
+//        switch (separatorData->paramShortDesc.str[i]) {
+//        case 'Z':
+//        case 'B':
+//        case 'S':
+//        case 'C':
+//        case 'I':
+//        case 'F':
+//        case 'L':
+//        case '[':
+//            count++;
+//            break;
+//        case 'J':
+//        case 'D':
+//            count += 2;
+//            break;
+//        default:
+//            MY_LOG_ERROR("无效的短类型！");
+//            break;
+//        }
+//    }
+//    return count;
+//}
 
 /**
  * 是否是静态方法。
  * @param[in] separatorData Separator数据。
  * @return true：是静态方法。false：不是静态方法。
  */
-static inline bool isStaticMethod(const SeparatorData* separatorData) {
-    return separatorData->accessFlag & ACC_STATIC == 0 ? false : true;
-}
+//static inline bool isStaticMethod(const SeparatorData* separatorData) {
+//    return separatorData->accessFlag & ACC_STATIC == 0 ? false : true;
+//}
 
 /**
  * 解析可变参数，获得参数数组。
@@ -280,56 +260,56 @@ static inline bool isStaticMethod(const SeparatorData* separatorData) {
  * @param[in] 
  * @return 返回参数数组。这个数组使用完后需要释放内存。
  */
-static jvalue* getParams(const SeparatorData* separatorData, va_list args) {
-    jvalue* params = new jvalue[separatorData->paramSize];
-    for (int i = 0; i < separatorData->paramSize; i++) {
-        switch (separatorData->paramShortDesc.str[i]) {
-        case 'Z':
-            params[i].z = va_arg(args, jboolean);
-            break;
-
-        case 'B':
-            params[i].b = va_arg(args, jbyte);
-            break;
-
-        case 'S':
-            params[i].s = va_arg(args, jshort);
-            break;
-
-        case 'C':
-            params[i].c = va_arg(args, jchar);
-            break;
-
-        case 'I':
-            params[i].i = va_arg(args, jint);
-            break;
-
-        case 'J':
-            params[i].j = va_arg(args, jlong);
-            break;
-
-        case 'F':
-            params[i].f = va_arg(args, jfloat);
-            break;
-
-        case 'D':
-            params[i].d = va_arg(args, jdouble);
-            break;
-
-        case 'L':
-            params[i].l = va_arg(args, jobject);
-            break;
-
-        case '[':
-            params[i].l = va_arg(args, jarray);
-            break;
-        default:
-            MY_LOG_WARNING("无效的短类型。");
-            break;
-        }
-    }
-    return params;
-}
+//static jvalue* getParams(const SeparatorData* separatorData, va_list args) {
+//    jvalue* params = new jvalue[separatorData->paramSize];
+//    for (int i = 0; i < separatorData->paramSize; i++) {
+//        switch (separatorData->paramShortDesc.str[i]) {
+//        case 'Z':
+//            params[i].z = va_arg(args, jboolean);
+//            break;
+//
+//        case 'B':
+//            params[i].b = va_arg(args, jbyte);
+//            break;
+//
+//        case 'S':
+//            params[i].s = va_arg(args, jshort);
+//            break;
+//
+//        case 'C':
+//            params[i].c = va_arg(args, jchar);
+//            break;
+//
+//        case 'I':
+//            params[i].i = va_arg(args, jint);
+//            break;
+//
+//        case 'J':
+//            params[i].j = va_arg(args, jlong);
+//            break;
+//
+//        case 'F':
+//            params[i].f = va_arg(args, jfloat);
+//            break;
+//
+//        case 'D':
+//            params[i].d = va_arg(args, jdouble);
+//            break;
+//
+//        case 'L':
+//            params[i].l = va_arg(args, jobject);
+//            break;
+//
+//        case '[':
+//            params[i].l = va_arg(args, jarray);
+//            break;
+//        default:
+//            MY_LOG_WARNING("无效的短类型。");
+//            break;
+//        }
+//    }
+//    return params;
+//}
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -1138,7 +1118,7 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
         if (!checkForNull(env, (Object*) arrayObj))                              \
             GOTO_exceptionThrown();                                         \
         if (GET_REGISTER(vsrc2) >= arrayObj->length) {                      \
-            dvmThrowArrayIndexOutOfBoundsException(                         \
+            dvmThrowArrayIndexOutOfBoundsException(env,                         \
                 arrayObj->length, GET_REGISTER(vsrc2));                     \
             GOTO_exceptionThrown();                                         \
         }                                                                   \
@@ -1163,7 +1143,7 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
         if (!checkForNull(env, (Object*) arrayObj))                              \
             GOTO_exceptionThrown();                                         \
         if (GET_REGISTER(vsrc2) >= arrayObj->length) {                      \
-            dvmThrowArrayIndexOutOfBoundsException(                         \
+            dvmThrowArrayIndexOutOfBoundsException(env,                         \
                 arrayObj->length, GET_REGISTER(vsrc2));                     \
             GOTO_exceptionThrown();                                         \
         }                                                                   \
@@ -1183,11 +1163,11 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
         ref = FETCH(1);         /* field ref */                             \
         ILOGV("|iget%s v%d,v%d,field@0x%04x", (_opname), vdst, vsrc1, ref); \
         obj = (Object*) GET_REGISTER(vsrc1);                                \
-        if (!checkForNull(obj))                                             \
+        if (!checkForNull(gEnv,obj))                                             \
             GOTO_exceptionThrown();                                         \
         ifield = (InstField*) dvmDexGetResolvedField(methodClassDex, ref);  \
         if (ifield == NULL) {                                               \
-            ifield = dvmResolveInstField(curMethod->clazz, ref);            \
+            ifield = dvmResolveInstFieldhook(curMethod->clazz, ref);            \
             if (ifield == NULL)                                             \
                 GOTO_exceptionThrown();                                     \
         }                                                                   \
@@ -1207,7 +1187,7 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
         sfield = (StaticField*)dvmDexGetResolvedField(methodClassDex, ref); \
         if (sfield == NULL) {                                               \
             EXPORT_PC();                                                    \
-            sfield = dvmResolveStaticField(curMethod->clazz, ref);          \
+            sfield = dvmResolveStaticFieldhook(curMethod->clazz, ref);          \
             if (sfield == NULL)                                             \
                 GOTO_exceptionThrown();                                     \
             if (dvmDexGetResolvedField(methodClassDex, ref) == NULL) {      \
@@ -1230,11 +1210,11 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
         ref = FETCH(1);         /* field ref */                             \
         ILOGV("|iput%s v%d,v%d,field@0x%04x", (_opname), vdst, vsrc1, ref); \
         obj = (Object*) GET_REGISTER(vsrc1);                                \
-        if (!checkForNull(obj))                                             \
+        if (!checkForNull(gEnv,obj))                                             \
             GOTO_exceptionThrown();                                         \
         ifield = (InstField*) dvmDexGetResolvedField(methodClassDex, ref);  \
         if (ifield == NULL) {                                               \
-            ifield = dvmResolveInstField(curMethod->clazz, ref);            \
+            ifield = dvmResolveInstFieldhook(curMethod->clazz, ref);            \
             if (ifield == NULL)                                             \
                 GOTO_exceptionThrown();                                     \
         }                                                                   \
@@ -1254,7 +1234,7 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
         sfield = (StaticField*)dvmDexGetResolvedField(methodClassDex, ref); \
         if (sfield == NULL) {                                               \
             EXPORT_PC();                                                    \
-            sfield = dvmResolveStaticField(curMethod->clazz, ref);          \
+            sfield = dvmResolveStaticFieldhook(curMethod->clazz, ref);          \
             if (sfield == NULL)                                             \
                 GOTO_exceptionThrown();                                     \
             if (dvmDexGetResolvedField(methodClassDex, ref) == NULL) {      \
@@ -1276,7 +1256,7 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
         ILOGV("|iget%s-quick v%d,v%d,field@+%u",                            \
             (_opname), vdst, vsrc1, ref);                                   \
         obj = (Object*) GET_REGISTER(vsrc1);                                \
-        if (!checkForNullExportPC(obj, fp, pc))                             \
+        if (!checkForNullExportPC(gEnv,obj, fp, pc))                             \
             GOTO_exceptionThrown();                                         \
         SET_REGISTER##_regsize(vdst, dvmGetField##_ftype(obj, ref));        \
         ILOGV("+ IGETQ %d=0x%08llx", ref,                                   \
@@ -1293,7 +1273,7 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
         ILOGV("|iput%s-quick v%d,v%d,field@0x%04x",                         \
             (_opname), vdst, vsrc1, ref);                                   \
         obj = (Object*) GET_REGISTER(vsrc1);                                \
-        if (!checkForNullExportPC(obj, fp, pc))                             \
+        if (!checkForNullExportPC(gEnv,obj, fp, pc))                             \
             GOTO_exceptionThrown();                                         \
         dvmSetField##_ftype(obj, ref, GET_REGISTER##_regsize(vdst));        \
         ILOGV("+ IPUTQ %d=0x%08llx", ref,                                   \
@@ -1310,14 +1290,15 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
 
 //////////////////////////////////////////////////////////////////////////
 
-jvalue BWdvmInterpretPortable(const SeparatorData* separatorData, JNIEnv* env, jobject thiz, ...) {
+jvalue BWdvmInterpretPortable(JNIEnv* env) {
     jvalue* params = NULL; // 参数数组。
     JValue retval;  // 返回值。
+    jvalue dddd;
     DvmDex* methodClassDex;
     const Method* curMethod;
     const Method* methodToCall;
     const u2* pc;   // 程序计数器。
-    u4 fp[65535];   // 寄存器数组。
+    u4* fp;   // 寄存器数组。
     u4 ref;
     u2 inst;        // 当前指令。
     u2 vsrc1, vsrc2, vdst;      // usually used for register indexes
@@ -1325,31 +1306,31 @@ jvalue BWdvmInterpretPortable(const SeparatorData* separatorData, JNIEnv* env, j
     unsigned int startIndex;
     Thread *self=dvmThreadSelfHook();
     // 处理参数。
-    va_list args;
-    va_start(args, thiz); 
-    params = getParams(separatorData, args);
-    va_end(args);
-
-    // 获得参数寄存器个数。    
-    size_t paramRegCount = getParamRegCount(separatorData);
-
-    // 设置参数寄存器的值。
-    if (isStaticMethod(separatorData)) {
-        startIndex = separatorData->registerSize - separatorData->paramSize;
-    } else {
-        startIndex = separatorData->registerSize - separatorData->paramSize;
-        fp[startIndex++] = (u4)thiz;
-    }
-    for (int i = startIndex, j = 0; j < separatorData->paramSize; j++ ) {
-        if ('D' == separatorData->paramShortDesc.str[i] || 'J' == separatorData->paramShortDesc.str[i]) {
-            fp[i++] = params[j].j & 0xFFFFFFFF;
-            fp[i++] = (params[j].j >> 32) & 0xFFFFFFFF;
-        } else {
-            fp[i++] = params[j].i;
-        }
-    }
-
-    pc = separatorData->insts;
+//    va_list args;
+//    va_start(args, thiz);
+//    params = getParams(separatorData, args);
+//    va_end(args);
+//
+//    // 获得参数寄存器个数。
+//    size_t paramRegCount = getParamRegCount(separatorData);
+//
+//    // 设置参数寄存器的值。
+//    if (isStaticMethod(separatorData)) {
+//        startIndex = separatorData->registerSize - separatorData->paramSize;
+//    } else {
+//        startIndex = separatorData->registerSize - separatorData->paramSize;
+//        fp[startIndex++] = (u4)thiz;
+//    }
+//    for (int i = startIndex, j = 0; j < separatorData->paramSize; j++ ) {
+//        if ('D' == separatorData->paramShortDesc.str[i] || 'J' == separatorData->paramShortDesc.str[i]) {
+//            fp[i++] = params[j].j & 0xFFFFFFFF;
+//            fp[i++] = (params[j].j >> 32) & 0xFFFFFFFF;
+//        } else {
+//            fp[i++] = params[j].i;
+//        }
+//    }
+//
+//    pc = separatorData->insts;
 
     /* static computed goto table */
     DEFINE_GOTO_TABLE(handlerTable);
@@ -3840,5 +3821,5 @@ bail:
         delete[] params;
     }
     MY_LOG_INFO("|-- Leaving interpreter loop");
-    return retval;
+    return dddd;
 }

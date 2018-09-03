@@ -5,11 +5,12 @@
 #ifndef CUSTOMAPPVMP_DVMDEX_H
 #define CUSTOMAPPVMP_DVMDEX_H
 
-#include "stdafx.h"
 #include "DexFile.h"
-#include "SysUtil.h"
+#include <jni.h>
+#include <sys/types.h>
 #include "Inlines.h"
 #include <assert.h>
+#include "SysUtil.h"
 struct DvmDex {
     /* pointer to the DexFile we're associated with */
     DexFile*            pDexFile;
@@ -60,4 +61,11 @@ INLINE struct Method* dvmDexGetResolvedMethod(const DvmDex* pDvmDex,
     assert(methodIdx < pDvmDex->pHeader->methodIdsSize);
     return pDvmDex->pResMethods[methodIdx];
 }
+INLINE struct Field* dvmDexGetResolvedField(const DvmDex* pDvmDex,
+                                            u4 fieldIdx)
+{
+    assert(fieldIdx < pDvmDex->pHeader->fieldIdsSize);
+    return pDvmDex->pResFields[fieldIdx];
+}
+
 #endif //CUSTOMAPPVMP_DVMDEX_H
