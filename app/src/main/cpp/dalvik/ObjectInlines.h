@@ -7,6 +7,7 @@
 
 #include "WriteBarrier.h"
 #include "Atomic.h"
+#include "atomic-arm.h"
 #define BYTE_OFFSET(_ptr, _offset)  ((void*) (((u1*)(_ptr)) + (_offset)))
 
 

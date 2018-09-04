@@ -5,29 +5,74 @@
 #ifndef CUSTOMAPPVMP_INTERP_H
 #define CUSTOMAPPVMP_INTERP_H
 
-#include "stdafx.h"
 #include "Thread.h"
+#include "log.h"
+#include <dlfcn.h>
 typedef void (*dvmReportExceptionThrow_func)(Thread* self, Object* exception);
-dvmReportExceptionThrow_func dvmReportExceptionThrowHook;
+ dvmReportExceptionThrow_func dvmReportExceptionThrowHook;
 typedef void (*dvmReportInvoke_func)(Thread* self, const Method* methodToCall);
-dvmReportInvoke_func dvmReportInvokeHook;
+ dvmReportInvoke_func dvmReportInvokeHook;
 typedef void (*dvmReportPreNativeInvoke_func)(const Method* methodToCall, Thread* self, u4* fp);
-dvmReportPreNativeInvoke_func dvmReportPreNativeInvokeHook;
+ dvmReportPreNativeInvoke_func dvmReportPreNativeInvokeHook;
 typedef void (*dvmReportPostNativeInvoke_func)(const Method* methodToCall, Thread* self, u4* fp);
-dvmReportPostNativeInvoke_func dvmReportPostNativeInvokeHook;
+ dvmReportPostNativeInvoke_func dvmReportPostNativeInvokeHook;
 typedef u1 (*dvmGetOriginalOpcode_func)(const u2* addr);
 dvmGetOriginalOpcode_func dvmGetOriginalOpcodeHook;
 typedef void (*dvmThrowVerificationError_func)(const Method* method, int kind, int ref);
 dvmThrowVerificationError_func dvmThrowVerificationErrorHook;
 typedef Method* (*dvmInterpFindInterfaceMethod_func)(ClassObject* thisClass, u4 methodIdx,
                                                   const Method* method, DvmDex* methodClassDex);
-dvmInterpFindInterfaceMethod_func dvmInterpFindInterfaceMethodHook;
+ dvmInterpFindInterfaceMethod_func dvmInterpFindInterfaceMethodHook;
 
 typedef void (*dvmAbort_func)();
 dvmAbort_func dvmAbortHook;
 typedef void (*dvmReportReturn_func)(Thread* self);
 dvmReportReturn_func dvmReportReturnHook;
-bool initInterpFuction(void *dvm_hand,int apilevel);
+static  bool initInterpFuction(void *dvm_hand,int apilevel){
+
+
+    if (dvm_hand) {
+        dvmReportExceptionThrowHook = (dvmReportExceptionThrow_func)dlsym(dvm_hand,"dvmReportExceptionThrow");
+        if (!dvmReportExceptionThrowHook) {
+            return JNI_FALSE;
+        }
+        dvmReportInvokeHook = (dvmReportInvoke_func)dlsym(dvm_hand,"dvmReportInvoke");
+        if (!dvmReportInvokeHook) {
+            return JNI_FALSE;
+        }
+        dvmReportPreNativeInvokeHook = (dvmReportPreNativeInvoke_func)dlsym(dvm_hand,"dvmReportPreNativeInvoke");
+        if (!dvmReportPreNativeInvokeHook) {
+            return JNI_FALSE;
+        }
+        dvmReportPostNativeInvokeHook = (dvmReportPostNativeInvoke_func)dlsym(dvm_hand,"dvmReportPostNativeInvoke");
+        if (!dvmReportPostNativeInvokeHook) {
+            return JNI_FALSE;
+        }
+        dvmGetOriginalOpcodeHook = (dvmGetOriginalOpcode_func)dlsym(dvm_hand,"dvmGetOriginalOpcode");
+        if (!dvmGetOriginalOpcodeHook) {
+            return JNI_FALSE;
+        }
+        dvmThrowVerificationErrorHook = (dvmThrowVerificationError_func)dlsym(dvm_hand,"dvmThrowVerificationError");
+        if (!dvmThrowVerificationErrorHook) {
+            return JNI_FALSE;
+        }
+        dvmInterpFindInterfaceMethodHook=(dvmInterpFindInterfaceMethod_func)dlsym(dvm_hand,"dvmInterpFindInterfaceMethod");
+        if (!dvmInterpFindInterfaceMethodHook) {
+            return JNI_FALSE;
+        }
+        dvmAbortHook=(dvmAbort_func)dlsym(dvm_hand,"dvmAbort");
+        if (!dvmAbortHook) {
+            return JNI_FALSE;
+        }
+        dvmReportReturnHook=(dvmReportReturn_func)dlsym(dvm_hand,"dvmReportReturn");
+        if (!dvmReportReturnHook) {
+            return JNI_FALSE;
+        }
+        return JNI_TRUE;
+    } else {
+        return JNI_FALSE;
+    }
+}
 void dvmDumpRegs(const Method* method, const u4* framePtr, bool inOnly)
 {
     int i, localCount;

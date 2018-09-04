@@ -10,5 +10,15 @@
 #include "base.h"
 typedef void (*dvmMarkCard_func)(const void *addr);
 dvmMarkCard_func dvmMarkCardHook;
-bool initCarTableFuction(void *dvm_hand,int apilevel);
+static  bool initCarTableFuction(void *dvm_hand,int apilevel){
+    if (dvm_hand) {
+        dvmMarkCardHook = (dvmMarkCard_func)dlsym(dvm_hand,"dvmMarkCard");
+        if (!dvmMarkCardHook) {
+            return JNI_FALSE;
+        }
+        return JNI_TRUE;
+    } else {
+        return JNI_FALSE;
+    }
+}
 #endif //CUSTOMAPPVMP_CARDTABLE_H

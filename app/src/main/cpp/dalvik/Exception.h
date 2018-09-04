@@ -21,19 +21,15 @@
 #define DALVIK_EXCEPTION_H_
 
 
-#include "stdafx.h"
 #include "Thread.h"
+#include <malloc.h>
+#include <dlfcn.h>
 typedef int (*dvmFindCatchBlock_func)(Thread* self, int relPc, Object* exception,
                                        bool scanOnly, void** newFrame);
-dvmFindCatchBlock_func dvmFindCatchBlockHook;
-bool initExceptionFuction(void *dvm_hand,int apilevel);
+ dvmFindCatchBlock_func dvmFindCatchBlockHook;
 
 
-void dvmThrowNullPointerException(JNIEnv* env, const char* msg);
 
-void dvmThrowArrayIndexOutOfBoundsException(JNIEnv* env, int length, int index);
-
-void dvmThrowArithmeticException(JNIEnv* env, const char* msg);
 INLINE bool dvmCheckException(Thread* self) {
     return (self->exception != NULL);
 }
@@ -75,5 +71,37 @@ void dvmThrowArrayStoreExceptionIncompatibleElement(ClassObject* objectType,
 void dvmThrowStringIndexOutOfBoundsExceptionWithIndex(jsize stringLength,
                                                       jsize requestIndex){
 
+}
+void dvmThrowNullPointerException(JNIEnv* env, const char* msg) {
+    jclass clazz = env->FindClass("java/lang/NullPointerException");
+    env->ThrowNew(clazz, msg);
+    env->DeleteLocalRef(clazz);
+}
+
+void dvmThrowArrayIndexOutOfBoundsException(JNIEnv* env, int length, int index) {
+    char* msg = (char*) calloc(100, 1);
+    sprintf(msg, "length=%d; index=%d", length, index);
+    jclass clazz = env->FindClass("java/lang/ArrayIndexOutOfBoundsException");
+    env->ThrowNew(clazz, msg);
+    env->DeleteLocalRef(clazz);
+    free(msg);
+}
+
+void dvmThrowArithmeticException(JNIEnv* env, const char* msg) {
+    jclass clazz = env->FindClass("java/lang/ArithmeticException");
+    env->ThrowNew(clazz, msg);
+    env->DeleteLocalRef(clazz);
+}
+static bool initExceptionFuction(void *dvm_hand,int apilevel){
+    if (dvm_hand) {
+        dvmFindCatchBlockHook = (dvmFindCatchBlock_func)dlsym(dvm_hand,"dvmFindCatchBlock");
+        if (!dvmFindCatchBlockHook) {
+            return JNI_FALSE;
+        }
+
+        return JNI_TRUE;
+    } else {
+        return JNI_FALSE;
+    }
 }
 #endif  // DALVIK_EXCEPTION_H_

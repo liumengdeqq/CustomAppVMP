@@ -11,7 +11,7 @@
 /* "count" is in 16-bit units */
 extern "C" u4 __memcmp16(const u2* s0, const u2* s1, size_t count);
 #endif
-
+JNIEnv *gEnv;
 /*
  * Some notes on "inline" functions.
  *
@@ -751,17 +751,4 @@ const InlineOperation gDvmInlineOpsTable[] = {
         { javaLangMath_sqrt, "Ljava/lang/StrictMath;", "sqrt", "(D)D" },
 };
 
-bool initInlineNaticeFuction(void *dvm_hand,int apilevel){
-    if (dvm_hand) {
-        dvmPerformInlineOp4DbgHook = (dvmPerformInlineOp4Dbg_func)dlsym(dvm_hand,"dvmPerformInlineOp4Dbg");
-        if (!dvmPerformInlineOp4DbgHook) {
-            return JNI_FALSE;
-        }
-
-
-        return JNI_TRUE;
-    } else {
-        return JNI_FALSE;
-    }
-}
 

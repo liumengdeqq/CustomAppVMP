@@ -1,18 +1,6 @@
-#include "stdafx.h"
+#include "avmp.h"
+#include "log.h"
 #include "Common.h"
-#include "InterpC.h"
-#include "Globals.h"
-#include "Utils.h"
-#include "Resolve.h"
-#include <dlfcn.h>
-#include "Sync.h"
-#include "TypeCheck.h"
-#include "Alloc.h"
-#include "Class.h"
-#include "Array.h"
-#include "Stack.h"
-#include "Interp.h"
-#include "InlineNative.h"
 void nativeLog(JNIEnv* env, jobject thiz) {
     MY_LOG_INFO("nativeLog, thiz=%p", thiz);
 }
@@ -64,19 +52,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     if (vm->GetEnv((void **)&env, JNI_VERSION_1_4) != JNI_OK) {
         return JNI_ERR;
     }
-    void* dvm_hand = dlopen("libdvm.so", RTLD_NOW);
-    initResolveFuction(dvm_hand,16);
-    initThreadFuction(dvm_hand,16);
-    initSynFuction(dvm_hand,16);
-    initTypeCheckFuction(dvm_hand,16);
-    initAllocFuction(dvm_hand,16);
-    initClassFuction(dvm_hand,16);
-    initArrayFuction(dvm_hand,16);
-    initCarTableFuction(dvm_hand,16);
-    initStackFuction(dvm_hand,16);
-    initInterpFuction(dvm_hand,16);
-    initExceptionFuction(dvm_hand,16);
-    initInlineNaticeFuction(dvm_hand,16);
+
     // ע�᱾�ط�����
     registerFunctions(env);
 

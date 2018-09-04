@@ -1,5 +1,21 @@
 
 #include "InterpC.h"
+#include "Exception.h"
+#include "DexOpcodes.h"
+#include "Resolve.h"
+#include "ObjectInlines.h"
+#include "Globals.h"
+#include "Array.h"
+#include "Class.h"
+#include "Stack.h"
+#include "FindInterface.h"
+#include "Allocc.h"
+#include "InlineNative.h"
+#include "TypeCheck.h"
+#include "Sync.h"
+#include "JniInternal.h"
+#include <stdlib.h>
+#include <string.h>
 //////////////////////////////////////////////////////////////////////////
 #define GOTO_TARGET_DECL(_target, ...)
 # define DUMP_REGS(_meth, _frame, _inOnly) dvmDumpRegs(_meth, _frame, _inOnly)
@@ -1291,6 +1307,7 @@ static inline bool checkForNullExportPC(JNIEnv* env, Object* obj, u4* fp, const 
 //////////////////////////////////////////////////////////////////////////
 
 jvalue BWdvmInterpretPortable(JNIEnv* env) {
+
     jvalue* params = NULL; // 参数数组。
     JValue retval;  // 返回值。
     jvalue dddd;
@@ -1305,6 +1322,19 @@ jvalue BWdvmInterpretPortable(JNIEnv* env) {
     bool methodCallRange;
     unsigned int startIndex;
     Thread *self=dvmThreadSelfHook();
+    void* dvm_hand = dlopen("libdvm.so", RTLD_NOW);
+    initResolveFuction(dvm_hand,16);
+    initThreadFuction(dvm_hand,16);
+    initSynFuction(dvm_hand,16);
+    initTypeCheckFuction(dvm_hand,16);
+    initAllocFuction(dvm_hand,16);
+    initClassFuction(dvm_hand,16);
+    initArrayFuction(dvm_hand,16);
+    initCarTableFuction(dvm_hand,16);
+    initStackFuction(dvm_hand,16);
+    initInterpFuction(dvm_hand,16);
+    initExceptionFuction(dvm_hand,16);
+    initInlineNaticeFuction(dvm_hand,16);
     // 处理参数。
 //    va_list args;
 //    va_start(args, thiz);

@@ -5,6 +5,7 @@
 #ifndef CUSTOMAPPVMP_INDIRECTREFTABLE_H
 #define CUSTOMAPPVMP_INDIRECTREFTABLE_H
 
+#include "Common.h"
 struct IndirectRefSlot {
     struct Object* obj;        /* object pointer itself, NULL if the slot is unused */
     u4      serial;     /* slot serial number */

@@ -15,9 +15,9 @@
 #ifndef CUSTOMAPPVMP_OBJECT_H
 #define CUSTOMAPPVMP_OBJECT_H
 
-#include "stdafx.h"
 #include "DexProto.h"
 #include "DvmDex.h"
+#include "RegisterMap.h"
 struct StringObject;
 struct ArrayObject;
 struct ClassObject;

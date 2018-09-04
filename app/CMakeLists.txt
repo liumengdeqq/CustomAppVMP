@@ -13,17 +13,13 @@ cmake_minimum_required(VERSION 3.4.1)
 add_library(
              native-lib
              SHARED
-             src/main/cpp/dalvik/ioapi.c
-             src/main/cpp/dalvik/unzip.c
-             src/main/cpp/dalvik/Globals.cpp
+             src/main/cpp/dalvik/atomic.cpp
              src/main/cpp/dalvik/avmp.cpp
              src/main/cpp/dalvik/BitConvert.cpp
-             src/main/cpp/dalvik/InterpC.cpp
-             src/main/cpp/dalvik/io.cpp
-             src/main/cpp/dalvik/Utils.cpp
-             src/main/cpp/dalvik/YcFile.cpp
              src/main/cpp/dalvik/DexOpcodes.cpp
-             src/main/cpp/dalvik/Exception.cpp
+             src/main/cpp/dalvik/InlineNative.cpp
+             src/main/cpp/dalvik/InterpC.cpp
+             src/main/cpp/dalvik/Utils.cpp
               )
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -46,6 +42,7 @@ find_library( # Sets the name of the path variable.
 target_link_libraries( # Specifies the target library.
                        native-lib
                        z
+                       dl
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib} )

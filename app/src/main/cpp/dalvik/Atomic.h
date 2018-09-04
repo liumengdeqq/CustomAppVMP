@@ -4,8 +4,6 @@
 
 #ifndef CUSTOMAPPVMP_ATOMIC_H
 #define CUSTOMAPPVMP_ATOMIC_H
-#ifndef DALVIK_ATOMIC_H_
-#define DALVIK_ATOMIC_H_
 
 #include <stdint.h>
 void dvmQuasiAtomicsStartup();
@@ -49,4 +47,3 @@ int dvmQuasiAtomicCas64(int64_t oldvalue, int64_t newvalue,
 
 #endif  // DALVIK_ATOMIC_H_
 
-#endif //CUSTOMAPPVMP_ATOMIC_H
