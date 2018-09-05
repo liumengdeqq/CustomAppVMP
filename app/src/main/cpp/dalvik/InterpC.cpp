@@ -16,6 +16,7 @@
 #include "JniInternal.h"
 #include <stdlib.h>
 #include <string.h>
+#include "atomic-arm.h"
 //////////////////////////////////////////////////////////////////////////
 #define GOTO_TARGET_DECL(_target, ...)
 # define DUMP_REGS(_meth, _frame, _inOnly) dvmDumpRegs(_meth, _frame, _inOnly)
@@ -1335,6 +1336,7 @@ jvalue BWdvmInterpretPortable(JNIEnv* env) {
     initInterpFuction(dvm_hand,16);
     initExceptionFuction(dvm_hand,16);
     initInlineNaticeFuction(dvm_hand,16);
+
     // 处理参数。
 //    va_list args;
 //    va_start(args, thiz);

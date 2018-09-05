@@ -1,6 +1,7 @@
 #include "avmp.h"
 #include "log.h"
 #include "Common.h"
+#include "atomic-arm.h"
 void nativeLog(JNIEnv* env, jobject thiz) {
     MY_LOG_INFO("nativeLog, thiz=%p", thiz);
 }
@@ -55,6 +56,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     // ע�᱾�ط�����
     registerFunctions(env);
+
 
 //    // ���apk·����
 //    gAdvmp.apkPath = GetAppPath(env);
