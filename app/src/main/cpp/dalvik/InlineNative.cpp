@@ -750,5 +750,18 @@ const InlineOperation gDvmInlineOpsTable[] = {
         { javaLangMath_max_int, "Ljava/lang/StrictMath;", "max", "(II)I" },
         { javaLangMath_sqrt, "Ljava/lang/StrictMath;", "sqrt", "(D)D" },
 };
+dvmPerformInlineOp4Dbg_func dvmPerformInlineOp4DbgHook;
+bool initInlineNaticeFuction(void *dvm_hand,int apilevel){
+    if (dvm_hand) {
+        dvmPerformInlineOp4DbgHook = (dvmPerformInlineOp4Dbg_func)dlsym(dvm_hand,"dvmPerformInlineOp4Dbg");
+        if (!dvmPerformInlineOp4DbgHook) {
+            return JNI_FALSE;
+        }
 
+
+        return JNI_TRUE;
+    } else {
+        return JNI_FALSE;
+    }
+}
 

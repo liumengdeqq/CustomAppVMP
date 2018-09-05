@@ -50,36 +50,17 @@ struct StackSaveArea {
 #define OUTS_FROM_FP(_fp, _argCount) \
     ((u4*) ((u1*)SAVEAREA_FROM_FP(_fp) - sizeof(u4) * (_argCount)))
 typedef void (*dvmHandleStackOverflow_func)(Thread* self, const Method* method);
- dvmHandleStackOverflow_func dvmHandleStackOverflowhook;
+extern dvmHandleStackOverflow_func dvmHandleStackOverflowhook;
 
 typedef int (*dvmLineNumFromPC_func)(const Method* method, u4 relPc);
- dvmLineNumFromPC_func dvmLineNumFromPChook;
+extern dvmLineNumFromPC_func dvmLineNumFromPChook;
 
 typedef int (*dvmCleanupStackOverflow_func)(Thread* self, const Object* exception);
- dvmCleanupStackOverflow_func dvmCleanupStackOverflowhook;
+ extern dvmCleanupStackOverflow_func dvmCleanupStackOverflowhook;
 INLINE bool dvmIsBreakFrame(const u4* fp)
 {
     return SAVEAREA_FROM_FP(fp)->method == NULL;
 }
 
-static  bool initStackFuction(void * dvm_hand,int apilevel){
-    if (dvm_hand) {
-        dvmHandleStackOverflowhook = (dvmHandleStackOverflow_func)dlsym(dvm_hand,"dvmHandleStackOverflow");
-        if (!dvmHandleStackOverflowhook) {
-            return JNI_FALSE;
-        }
-        dvmLineNumFromPChook = (dvmLineNumFromPC_func)dlsym(dvm_hand,"dvmLineNumFromPC");
-        if (!dvmLineNumFromPChook) {
-            return JNI_FALSE;
-        }
-        dvmCleanupStackOverflowhook = (dvmCleanupStackOverflow_func)dlsym(dvm_hand,"dvmCleanupStackOverflow");
-        if (!dvmCleanupStackOverflowhook) {
-            return JNI_FALSE;
-        }
-
-        return JNI_TRUE;
-    } else {
-        return JNI_FALSE;
-    }
-}
+bool initStackFuction(void * dvm_hand,int apilevel);
 #endif //CUSTOMAPPVMP_STACK_H

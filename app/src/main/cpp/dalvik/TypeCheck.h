@@ -8,7 +8,8 @@
 #include "object.h"
 #include <dlfcn.h>
 typedef int (*dvmInstanceofNonTrivial_func)(const ClassObject* instance,const ClassObject* clazz);
- dvmInstanceofNonTrivial_func dvmInstanceofNonTrivialHook;
+
+extern dvmInstanceofNonTrivial_func dvmInstanceofNonTrivialHook;
 INLINE int dvmInstanceof(const ClassObject* instance, const ClassObject* clazz)
 {
     if (instance == clazz) {
@@ -19,22 +20,8 @@ INLINE int dvmInstanceof(const ClassObject* instance, const ClassObject* clazz)
 
 typedef bool (*dvmCanPutArrayElement_func)(const ClassObject* objectClass,
                                           const ClassObject* arrayClass);
- dvmCanPutArrayElement_func dvmCanPutArrayElementHook;
-static  bool initTypeCheckFuction(void *dvm_hand,int apilevel){
-    if (dvm_hand) {
-        dvmInstanceofNonTrivialHook = (dvmInstanceofNonTrivial_func)dlsym(dvm_hand,"dvmInstanceofNonTrivial");
-        if (!dvmInstanceofNonTrivialHook) {
-            return JNI_FALSE;
-        }
-        dvmCanPutArrayElementHook = (dvmCanPutArrayElement_func)dlsym(dvm_hand,"dvmCanPutArrayElement");
-        if (!dvmCanPutArrayElementHook) {
-            return JNI_FALSE;
-        }
 
-        return JNI_TRUE;
-    } else {
-        return JNI_FALSE;
-    }
-}
+extern dvmCanPutArrayElement_func dvmCanPutArrayElementHook;
+  bool initTypeCheckFuction(void *dvm_hand,int apilevel);
 
 #endif //CUSTOMAPPVMP_TYPECHECK_H

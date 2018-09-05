@@ -52,7 +52,7 @@ struct InlineOperation {
 };
 typedef bool (*dvmPerformInlineOp4Dbg_func)(u4 arg0, u4 arg1, u4 arg2, u4 arg3,
                                             JValue* pResult, int opIndex);
-dvmPerformInlineOp4Dbg_func dvmPerformInlineOp4DbgHook;
+extern dvmPerformInlineOp4Dbg_func dvmPerformInlineOp4DbgHook;
 extern const InlineOperation gDvmInlineOpsTable[];
 INLINE bool dvmPerformInlineOp4Std(u4 arg0, u4 arg1, u4 arg2, u4 arg3,
                                    JValue* pResult, int opIndex)
@@ -60,18 +60,5 @@ INLINE bool dvmPerformInlineOp4Std(u4 arg0, u4 arg1, u4 arg2, u4 arg3,
     return (*gDvmInlineOpsTable[opIndex].func)(arg0, arg1, arg2, arg3, pResult);
 }
 
-static  bool initInlineNaticeFuction(void *dvm_hand,int apilevel){
-    if (dvm_hand) {
-        dvmPerformInlineOp4DbgHook = (dvmPerformInlineOp4Dbg_func)dlsym(dvm_hand,"dvmPerformInlineOp4Dbg");
-        if (!dvmPerformInlineOp4DbgHook) {
-            return JNI_FALSE;
-        }
-
-
-        return JNI_TRUE;
-    } else {
-        return JNI_FALSE;
-    }
-}
-
+bool initInlineNaticeFuction(void *dvm_hand,int apilevel);
 #endif //CUSTOMAPPVMP_INLINENATIVE_H

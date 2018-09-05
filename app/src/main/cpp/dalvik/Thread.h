@@ -273,27 +273,11 @@ struct Thread {
 #endif
 };
 typedef Thread* (*dvmThreadSelf_func)();
- dvmThreadSelf_func dvmThreadSelfHook;
+ extern dvmThreadSelf_func dvmThreadSelfHook;
 typedef bool (*dvmCheckSuspendPending_func)(Thread* self);
- dvmCheckSuspendPending_func dvmCheckSuspendPendingHook;
+ extern dvmCheckSuspendPending_func dvmCheckSuspendPendingHook;
 
-static bool initThreadFuction(void *dvm_hand,int apilevel){
-
-    if (dvm_hand) {
-        dvmThreadSelfHook = (dvmThreadSelf_func)dlsym(dvm_hand,
-                                                      apilevel > 10 ? "_Z13dvmThreadSelfv" : "dvmThreadSelf");
-        if (!dvmThreadSelfHook) {
-            return JNI_FALSE;
-        }
-        dvmCheckSuspendPendingHook= (dvmCheckSuspendPending_func)dlsym(dvm_hand,"dvmCheckSuspendPending");
-        if (!dvmCheckSuspendPendingHook) {
-            return JNI_FALSE;
-        }
-        return JNI_TRUE;
-    } else {
-        return JNI_FALSE;
-    }
-}
+bool initThreadFuction(void *dvm_hand,int apilevel);
 INLINE bool dvmCheckSuspendQuick(Thread* self) {
     return (self->interpBreak.ctl.subMode & kSubModeSuspendPending);
 }

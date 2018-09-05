@@ -1,5 +1,3 @@
-#pragma once
-
 /*
  * There are three types of objects:
  *  Class objects - an instance of java.lang.Class

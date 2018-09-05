@@ -26,24 +26,24 @@
 #include <dlfcn.h>
 typedef int (*dvmFindCatchBlock_func)(Thread* self, int relPc, Object* exception,
                                        bool scanOnly, void** newFrame);
- dvmFindCatchBlock_func dvmFindCatchBlockHook;
+extern dvmFindCatchBlock_func dvmFindCatchBlockHook;
 
 
 
 INLINE bool dvmCheckException(Thread* self) {
     return (self->exception != NULL);
 }
-void dvmThrowClassCastException(struct ClassObject* actual, struct ClassObject* desired)
+INLINE void dvmThrowClassCastException(struct ClassObject* actual, struct ClassObject* desired)
 {
 
 }
-void dvmThrowNegativeArraySizeException(s4 size) {
+INLINE void dvmThrowNegativeArraySizeException(s4 size) {
 //    dvmThrowExceptionFmt(gDvm.exNegativeArraySizeException, "%d", size);
 }
-void dvmThrowRuntimeException(const char* msg){
+INLINE void dvmThrowRuntimeException(const char* msg){
 
 }
-void dvmThrowInternalError(const char* msg){
+INLINE void dvmThrowInternalError(const char* msg){
 
 }
 INLINE void dvmSetException(struct Thread* self, struct Object* exception)
@@ -57,28 +57,28 @@ INLINE Object* dvmGetException(Thread* self) {
 INLINE void dvmClearException(Thread* self) {
     self->exception = NULL;
 }
-void dvmThrowNoSuchMethodError(const char* msg) {
+INLINE void dvmThrowNoSuchMethodError(const char* msg) {
 //    dvmThrowException(gDvm.exNoSuchMethodError, msg);
 }
 
-void dvmThrowArrayStoreExceptionIncompatibleElement(ClassObject* objectType,
+INLINE void dvmThrowArrayStoreExceptionIncompatibleElement(ClassObject* objectType,
                                                     ClassObject* arrayType)
 {
 //    throwTypeError(gDvm.exArrayStoreException,
 //                   "%s cannot be stored in an array of type %s",
 //                   objectType, arrayType);
 }
-void dvmThrowStringIndexOutOfBoundsExceptionWithIndex(jsize stringLength,
+INLINE void dvmThrowStringIndexOutOfBoundsExceptionWithIndex(jsize stringLength,
                                                       jsize requestIndex){
 
 }
-void dvmThrowNullPointerException(JNIEnv* env, const char* msg) {
+INLINE void dvmThrowNullPointerException(JNIEnv* env, const char* msg) {
     jclass clazz = env->FindClass("java/lang/NullPointerException");
     env->ThrowNew(clazz, msg);
     env->DeleteLocalRef(clazz);
 }
 
-void dvmThrowArrayIndexOutOfBoundsException(JNIEnv* env, int length, int index) {
+INLINE void dvmThrowArrayIndexOutOfBoundsException(JNIEnv* env, int length, int index) {
     char* msg = (char*) calloc(100, 1);
     sprintf(msg, "length=%d; index=%d", length, index);
     jclass clazz = env->FindClass("java/lang/ArrayIndexOutOfBoundsException");
@@ -87,21 +87,10 @@ void dvmThrowArrayIndexOutOfBoundsException(JNIEnv* env, int length, int index) 
     free(msg);
 }
 
-void dvmThrowArithmeticException(JNIEnv* env, const char* msg) {
+INLINE void dvmThrowArithmeticException(JNIEnv* env, const char* msg) {
     jclass clazz = env->FindClass("java/lang/ArithmeticException");
     env->ThrowNew(clazz, msg);
     env->DeleteLocalRef(clazz);
 }
-static bool initExceptionFuction(void *dvm_hand,int apilevel){
-    if (dvm_hand) {
-        dvmFindCatchBlockHook = (dvmFindCatchBlock_func)dlsym(dvm_hand,"dvmFindCatchBlock");
-        if (!dvmFindCatchBlockHook) {
-            return JNI_FALSE;
-        }
-
-        return JNI_TRUE;
-    } else {
-        return JNI_FALSE;
-    }
-}
+ bool initExceptionFuction(void *dvm_hand,int apilevel);
 #endif  // DALVIK_EXCEPTION_H_

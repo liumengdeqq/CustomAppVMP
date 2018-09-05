@@ -13,6 +13,17 @@ cmake_minimum_required(VERSION 3.4.1)
 add_library(
              native-lib
              SHARED
+             src/main/cpp/dalvik/CardTable.cpp
+             src/main/cpp/dalvik/Allocc.cpp
+             src/main/cpp/dalvik/Array.cpp
+             src/main/cpp/dalvik/Class.cpp
+             src/main/cpp/dalvik/Exception.cpp
+             src/main/cpp/dalvik/Interp.cpp
+             src/main/cpp/dalvik/Stack.cpp
+             src/main/cpp/dalvik/Sync.cpp
+             src/main/cpp/dalvik/Resolve.cpp
+             src/main/cpp/dalvik/Thread.cpp
+             src/main/cpp/dalvik/TypeCheck.cpp
              src/main/cpp/dalvik/atomic.cpp
              src/main/cpp/dalvik/avmp.cpp
              src/main/cpp/dalvik/BitConvert.cpp

@@ -18,45 +18,18 @@ enum MethodType {
 typedef StringObject* (*dvmResolveString_func)(const ClassObject* referrer, u4 stringIdx);
 typedef ClassObject* (*dvmResolveClass_func)(const ClassObject* referrer, u4 classIdx,bool fromUnverifiedConstant);
 
- dvmResolveString_func dvmResolveStringhook;
- dvmResolveClass_func dvmResolveClasshook;
+extern dvmResolveString_func dvmResolveStringhook;
+extern dvmResolveClass_func dvmResolveClasshook;
 
 typedef Method* (*dvmResolveMethod_func)(const ClassObject* referrer, u4 methodIdx,
                                             MethodType methodType);
- dvmResolveMethod_func dvmResolveMethodhook;
+extern dvmResolveMethod_func dvmResolveMethodhook;
 
 typedef InstField* (*dvmResolveInstField_func)(const ClassObject* referrer, u4 ifieldIdx);
- dvmResolveInstField_func dvmResolveInstFieldhook;
+extern dvmResolveInstField_func dvmResolveInstFieldhook;
 typedef StaticField* (*dvmResolveStaticField_func)(const ClassObject* referrer, u4 sfieldIdx);
- dvmResolveStaticField_func dvmResolveStaticFieldhook;
+extern  dvmResolveStaticField_func dvmResolveStaticFieldhook;
 
-static bool initResolveFuction(void * dvm_hand,int apilevel){
-    if (dvm_hand) {
-        dvmResolveStringhook = (dvmResolveString_func)dlsym(dvm_hand,"dvmResolveString");
-        if (!dvmResolveStringhook) {
-            return JNI_FALSE;
-        }
-        dvmResolveClasshook = (dvmResolveClass_func)dlsym(dvm_hand,"dvmResolveClass");
-        if (!dvmResolveClasshook) {
-            return JNI_FALSE;
-        }
-        dvmResolveMethodhook = (dvmResolveMethod_func)dlsym(dvm_hand,"dvmResolveMethod");
-        if (!dvmResolveMethodhook) {
-            return JNI_FALSE;
-        }
-        dvmResolveInstFieldhook = (dvmResolveInstField_func)dlsym(dvm_hand,"dvmResolveInstField");
-        if (!dvmResolveInstFieldhook) {
-            return JNI_FALSE;
-        }
-        dvmResolveStaticFieldhook = (dvmResolveStaticField_func)dlsym(dvm_hand,"dvmResolveStaticField");
-        if (!dvmResolveStaticFieldhook) {
-            return JNI_FALSE;
-        }
-
-        return JNI_TRUE;
-    } else {
-        return JNI_FALSE;
-    }
-}
+bool initResolveFuction(void * dvm_hand,int apilevel);
 
 #endif //CUSTOMAPPVMP_RESOLVE_H

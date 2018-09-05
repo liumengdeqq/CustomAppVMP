@@ -12,16 +12,6 @@ INLINE bool dvmIsArrayClass(const ClassObject* clazz)
 }
 
 typedef ArrayObject*  (*dvmAllocArrayByClass_func)(ClassObject* arrayClass, size_t length, int allocFlags);
-dvmAllocArrayByClass_func dvmAllocArrayByClassHook;
-static  bool initArrayFuction(void *dvm_hand,int apilevel){
-    if (dvm_hand) {
-        dvmAllocArrayByClassHook = (dvmAllocArrayByClass_func)dlsym(dvm_hand,"dvmInitClass");
-        if (!dvmAllocArrayByClassHook) {
-            return JNI_FALSE;
-        }
-        return JNI_TRUE;
-    } else {
-        return JNI_FALSE;
-    }
-}
+extern dvmAllocArrayByClass_func dvmAllocArrayByClassHook;
+bool initArrayFuction(void *dvm_hand,int apilevel);
 #endif //CUSTOMAPPVMP_ARRAY_H
